@@ -1,0 +1,24 @@
+# No style needed
+*.sty
+
+#No intermediate files
+*.aux
+*.glo
+*.hd
+*.idx
+*.log
+*.lot
+*.lof
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+*.lb
+
+*.brf
+*.ilg
+*.ind
+*.xcp
