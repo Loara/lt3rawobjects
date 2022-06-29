@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{rwobj.dtx}[2022/06/28 1.0 Objects and proxies in LaTeX3]
+\ProvidesFile{rwobj.dtx}[2022/06/29 1.0.1 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
-%<package>\RequirePackage{expl3}[2022-06-28]
-%<package>\ProvidesExplPackage{rwobj}{2022/06/28}{1.0}{Objects and proxies in LaTeX3}
+%<package>\RequirePackage{expl3}[2022-04-10]
+%<package>\ProvidesExplPackage{rwobj}{2022/06/29}{ 1.0.1 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{rwobj}
@@ -38,8 +38,9 @@
 %
 %\newcommand{\thpkg}{\pkg{rwobj}}
 %
-%\title{the \pkg{rwobj} package}
+%\title{The \pkg{rwobj} package}
 %\author{Paolo De Donato}
+% \date{Released 2022/06/29 Version 1.0.1}
 %
 %\maketitle
 %
@@ -48,7 +49,17 @@
 %\begin{documentation}
 %
 %\section{Introduction}
-% The package \thpkg\ introduces a new mechanism to create objects like the well known C structures. Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. Also in \thpkg\ objects are collections of variables, called member variables, which can be retrieved from a string representing that object. Such string is the \emph{address} of the object and act like the address of a structure in C.
+% First to all notice that \thpkg\ means ``raw object(s)'', indeed \thpkg\ introduces a new mechanism to create objects like the well known C structures. The functions exported by this package are quite low level, and many important mechanisms like member protection and name resolution aren't already defined and should be introduced by intermediate packages.
+%
+% \section{To do}
+% \begin{itemize}
+%   \item Introduce member functions in objects and member function specifications in proxies;
+%   \item Uniform declarations for templated proxies;
+%   \item Introduce constant objects.
+% \end{itemize}
+%
+% \section{Objects and proxies}
+% Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. Also in \thpkg\ objects are collections of variables, called member variables, which can be retrieved from a string representing that object. Such string is the \emph{address} of the object and act like the address of a structure in C.
 %
 % An address is composed of two parts, the \emph{module} in which variables are created and an \emph{identifier} that identify uniquely the object inside its module. It's up to the caller that two different objects have different identifiers. The address of an object can be obtained with the \cs{object_address} function. Identifiers and module names should not contain numbers, \verb|#| and \verb|_| characters in order to avoid conflicts with automatically generated addresses.
 %
@@ -211,6 +222,50 @@
 %  \end{syntax}
 %  Assigns the content of each variable of object at \meta{from address} to each correspective variable in \meta{to address}. Both the objects should be created with the same proxy object and only variables listed in the proxy are assigned.
 % \end{function}
+%
+% \section{Examples}
+%  \subsection*{Example 1}
+% Create a public proxy with id \verb|myproxy| with the specification of a single member variable with name \verb|myvar| and type \verb|tl|, then set its address inside \cs{l_myproxy_str}.
+%
+% \begin{verbatim}
+% \str_new:N \l_myproxy_str
+% \proxy_create_set:NnnN \l_myproxy_str { example }{ myproxy }
+%   \c_object_public_str
+% \proxy_push_member:Vnn \l_myproxy_str { myvar }{ tl }
+% \end{verbatim}
+%
+% Then create a new object with name \verb|myobj| with that proxy, assign then token list \verb|\c_dollar_str{} ~ dollar ~ \c_dollar_str{}| to \verb|myvar| and then print it.
+%
+% \begin{verbatim}
+% \str_new:N \l_myobj_str
+% \object_create_set:NVnnNN \l_myobj_str \l_myproxy_str
+%   { example }{ myobj } \c_object_local_str \c_object_public_str
+% \tl_set:cn
+%   {
+%     \object_member_adr:Vn \l_myobj_str { myvar }
+%   }
+%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
+% \object_member_use:Vn \l_myobj_str { myvar }
+% \end{verbatim}
+%
+% Output:
+%
+% \ExplSyntaxOn
+% \str_new:N \l_myproxy_str
+% \proxy_create_set:NnnN \l_myproxy_str { example }{ myproxy }
+%   \c_object_public_str
+% \proxy_push_member:Vnn \l_myproxy_str { myvar }{ tl }
+% \str_new:N \l_myobj_str
+% \object_create_set:NVnnNN \l_myobj_str \l_myproxy_str
+%   { example }{ myobj } \c_object_local_str \c_object_public_str
+% \tl_set:cn
+%   {
+%     \object_member_adr:Vn \l_myobj_str { myvar }
+%   }
+%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
+% \object_member_use:Vn \l_myobj_str { myvar }
+% \ExplSyntaxOff
+%
 %
 %
 %\end{documentation}
