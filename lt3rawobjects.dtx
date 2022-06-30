@@ -1,46 +1,46 @@
 % \iffalse meta-comment
 %
-%  rwobj Handle multiple versions for user-defined macros in LaTeX
+%  lt3rawobjects Objects and proxies in LaTeX3
 %  Copyright (C) 2022  Paolo De Donato <dedonato95@hotmail.it>
 %
-%  This file is part of rwobj.
+%  This file is part of lt3rawobjects.
 %
-%  rwobj is free software: you can redistribute it and/or modify
+%  lt3rawobjects is free software: you can redistribute it and/or modify
 %  it under the terms of the GNU General Public License as published by
 %  the Free Software Foundation, either version 3 of the License, or
 %  (at your option) any later version.
 %
-%  rwobj is distributed in the hope that it will be useful,
+%  lt3rawobjects is distributed in the hope that it will be useful,
 %  but WITHOUT ANY WARRANTY; without even the implied warranty of
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %  GNU General Public License for more details.
 %
 %  You should have received a copy of the GNU General Public License
-%  along with rwobj.  If not, see <https://www.gnu.org/licenses/>.
+%  along with lt3rawobjects.  If not, see <https://www.gnu.org/licenses/>.
 %
 % \fi
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{rwobj.dtx}[2022/06/29 1.0.1 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/06/30 1.0.2 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{rwobj}{2022/06/29}{ 1.0.1 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/06/30}{ 1.0.2 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
-\usepackage{rwobj}
+\usepackage{lt3rawobjects}
 \begin{document}
-\DocInput{rwobj.dtx}
+\DocInput{lt3rawobjects.dtx}
 \end{document}
 %</driver>
 % \fi
 %
-%\newcommand{\thpkg}{\pkg{rwobj}}
+%\newcommand{\thpkg}{\pkg{lt3rawobjects}}
 %
-%\title{The \pkg{rwobj} package}
+%\title{The \pkg{lt3rawobjects} package}
 %\author{Paolo De Donato}
-% \date{Released 2022/06/29 Version 1.0.1}
+% \date{Released 2022/06/30 Version 1.0.2}
 %
 %\maketitle
 %
@@ -67,7 +67,7 @@
 %
 % In \thpkg\ objects are created from an existing object with a particular structure that holds all the needed informations to organize their variables. Such objects that can be used to instantiate new objects are calles \emph{proxies} and the proxy object used to instantiate an object is its \emph{generator}. In order to create new objects with a specified proxy you can use the \cs{object_create} functions.
 %
-% Since proxies are themself objects we need a proxy to instantiate user defined proxies, you can use the \verb|proxy| object in the \pkg{rwobj} module to create you own proxy, which address is held by the \cs{c_proxy_address_str} variable. Proxies must be created from the \verb|proxy| object otherwise they won't be recognized as proxies. Instead of using \cs{object_create} to create proxies you can directly use the function \cs{proxy_create}.
+% Since proxies are themself objects we need a proxy to instantiate user defined proxies, you can use the \verb|proxy| object in the \verb|lt3rawobjects| module to create you own proxy, which address is held by the \cs{c_proxy_address_str} variable. Proxies must be created from the \verb|proxy| object otherwise they won't be recognized as proxies. Instead of using \cs{object_create} to create proxies you can directly use the function \cs{proxy_create}.
 %
 % Once you've created you proxy object you should specify its member variables that will be created in each object initialized with such proxy. You can add a variable specification with the \cs{proxy_push_member} function. Once you've added all yor variables specifications you can use your proxy to create objects. You should never modify a proxy once you've used it to create at least one object, since these modifications won't be updated on already created objects, leading to hidden errors in subsequential code.
 %
@@ -176,7 +176,7 @@
 % \end{function}
 %
 % \begin{variable}{\c_proxy_address_str}
-%  The address of the \verb|proxy| object in the \pkg{rwobj} module.
+%  The address of the \verb|proxy| object in the \verb|lt3rawobjects| module.
 % \end{variable}
 %
 % \begin{function}{\object_create:nnnNN, \object_create:VnnNN}
@@ -491,7 +491,7 @@
 %
 %    \begin{macrocode}
 
-\msg_new:nnnn { rwobj }{ scoperr }{ Nonstandard ~ scope }
+\msg_new:nnnn { lt3rawobjects }{ scoperr }{ Nonstandard ~ scope }
   {
     Operation ~ not ~ permitted ~ on ~ object ~ #1 ~
     ~ since ~ it ~ wasn't ~ declared ~ local ~ or ~ global
@@ -504,7 +504,7 @@
         \object_if_local_p:n { #1 } || \object_if_global_p:n { #1 }
       }
       {
-        \msg_error:nnx { rwobj }{ scoperr }{ #1 }
+        \msg_error:nnx { lt3rawobjects }{ scoperr }{ #1 }
       }
   }
 
@@ -592,7 +592,7 @@
 %The address of the \verb|proxy| object.
 %    \begin{macrocode}
 \str_const:Nx \c_proxy_address_str
-  { \object_address:nn { rwobj }{ proxy } }
+  { \object_address:nn { lt3rawobjects }{ proxy } }
 %    \end{macrocode}
 %\end{variable}
 %
@@ -600,7 +600,7 @@
 % Source of \verb|proxy| object
 %    \begin{macrocode}
 \str_const:cn { \@@_object_modvar:V \c_proxy_address_str }
-  { rwobj }
+  { lt3rawobjects }
 \str_const:cV { \@@_object_pxyvar:V \c_proxy_address_str }
   \c_proxy_address_str
 \str_const:cV { \@@_object_scovar:V \c_proxy_address_str }
@@ -647,7 +647,7 @@
 
 \msg_new:nnn { aa }{ mess }{ #1 }
 
-\msg_new:nnnn { rwobj }{ notproxy }{ Fake ~ proxy }
+\msg_new:nnnn { lt3rawobjects }{ notproxy }{ Fake ~ proxy }
   {
     Object ~ #1 ~ is ~ not ~ a ~ proxy.
   }
@@ -656,7 +656,7 @@
   {
     \object_if_proxy:nF { #1 }
       {
-        \msg_error:nnn { rwobj }{ notproxy }{ #1 }
+        \msg_error:nnn { lt3rawobjects }{ notproxy }{ #1 }
       }
   }
 
