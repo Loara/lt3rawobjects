@@ -115,6 +115,15 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}{\object_address_set:Nnn, \object_address_gset:Nnn}
+%  \begin{syntax}
+%   \cs{object_address_set:nn} \meta{str var} \Arg{module} \Arg{id}
+%  \end{syntax}
+%  Stores the adress of selected object inside the string variable \meta{str var}.
+%
+% \fromV{1.1}
+% \end{function}
+%
 % \begin{function}[pTF]{\object_if_exist:n, \object_if_exist:V}
 %  \begin{syntax}
 %   \cs{object_if_exist_p:n} \marg{address}
@@ -147,8 +156,8 @@
 %
 % \begin{function}[pTF]{\object_if_public:n, \object_if_private:n, \object_if_public:V, \object_if_private:V}
 %  \begin{syntax}
-%   \cs{object_if_local_p:n} \marg{address}
-%   \cs{object_if_local:nTF} \marg{address} \marg{true code} \marg{false code}
+%   \cs{object_if_public_p:n} \marg{address}
+%   \cs{object_if_public:nTF} \marg{address} \marg{true code} \marg{false code}
 %  \end{syntax}
 %  Tests if the object is public or private.
 %
@@ -304,6 +313,15 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}{\object_allocate_incr:NNnnNN, \object_allocate_incr:NNVnNN, \object_gallocate_incr:NNnnNN, \object_gallocate_incr:NNVnNN, \object_allocate_gincr:NNnnNN, \object_allocate_gincr:NNVnNN, \object_gallocate_gincr:NNnnNN, \object_gallocate_gincr:NNVnNN}
+%  \begin{syntax}
+%   \cs{object_allocate_incr:NNnnNN} \meta{str var} \meta{int var} \Arg{proxy address} \Arg{module} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  Build a new object address with module \meta{module} and an identifier generated from \meta{proxy address} and the integer contained inside \meta{int var}, then increments \meta{int var}. This is very useful when you need to create a lot of objects, each of them on a different address. the |_incr| version increases \meta{int var} locally whereas |_gincr| does it globally.
+%
+% \fromV{1.1}
+% \end{function}
+%
 % \begin{function}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
 %  \begin{syntax}
 %   \cs{proxy_create:nnN} \marg{module} \marg{id} \meta{visibility}
@@ -357,9 +375,7 @@
 % \object_member_use:Vn \l_myobj_str { myvar }
 % \end{verbatim}
 %
-% Output:
-%
-% \ExplSyntaxOn
+% Output: \ExplSyntaxOn
 % \str_new:N \l_myproxy_str
 % \proxy_create_set:NnnN \l_myproxy_str { example }{ myproxy }
 %   \c_object_public_str
@@ -367,6 +383,32 @@
 % \str_new:N \l_myobj_str
 % \object_create_set:NVnnNN \l_myobj_str \l_myproxy_str
 %   { example }{ myobj } \c_object_local_str \c_object_public_str
+% \tl_set:cn
+%   {
+%     \object_member_adr:Vn \l_myobj_str { myvar }
+%   }
+%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
+% \object_member_use:Vn \l_myobj_str { myvar }
+% \ExplSyntaxOff
+%
+% If you don't want to specify an object identifier you can also do
+%
+% \begin{verbatim}
+% \int_new:N \l_intc_int
+% \object_allocate_incr:NNVnNN \l_myobj_str \l_intc_int \l_myproxy_str
+%   { example } \c_object_local_str \c_object_public_str
+% \tl_set:cn
+%   {
+%     \object_member_adr:Vn \l_myobj_str { myvar }
+%   }
+%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
+% \object_member_use:Vn \l_myobj_str { myvar }
+% \end{verbatim}
+%
+% Output: \ExplSyntaxOn
+% \int_new:N \l_intc_int
+% \object_allocate_incr:NNVnNN \l_myobj_str \l_intc_int \l_myproxy_str
+%   { example } \c_object_local_str \c_object_public_str
 % \tl_set:cn
 %   {
 %     \object_member_adr:Vn \l_myobj_str { myvar }
@@ -417,6 +459,21 @@
 \cs_new:Nn \object_address:nn {
   \tl_to_str:n { #1  _  #2 }
 }
+%    \end{macrocode}
+%\end{macro}
+%
+%\begin{macro}{\object_address_set:Nnn, \object_address_gset:Nnn}
+% Saves the address of an object into a string variable
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \object_address_set:Nnn {
+  \str_set:Nn #1 { #2  _  #3 }
+}
+
+\cs_new_protected:Nn \object_address_gset:Nnn {
+  \str_gset:Nn #1 { #2  _  #3 }
+}
+
 %    \end{macrocode}
 %\end{macro}
 %
@@ -961,6 +1018,72 @@
 
 %    \end{macrocode}
 %\end{macro}
+%
+% \begin{macro}{\object_allocate_incr:NNnnNN, \object_gallocate_incr:NNnnNN, \object_allocate_gincr:NNnnNN, \object_gallocate_gincr:NNnnNN}
+% Create an address and use it to instantiate an object
+%    \begin{macrocode}
+
+\cs_new:Nn \@@_combine:nn
+  {
+    anon . #2 . #1
+  }
+
+\cs_generate_variant:Nn \@@_combine:nn { Vn }
+
+\cs_new_protected:Nn \object_allocate_incr:NNnnNN
+  {
+    \object_create_set:NnnnNN #1 { #3 }{ #4 }
+      {
+        \@@_combine:Vn #2 { #3 }
+      }
+      #5 #6
+
+      \int_incr:N #2
+  }
+
+\cs_new_protected:Nn \object_gallocate_incr:NNnnNN
+  {
+    \object_create_gset:NnnnNN #1 { #3 }{ #4 }
+      {
+        \@@_combine:Vn #2 { #3 }
+      }
+      #5 #6
+
+      \int_incr:N #2
+  }
+
+\cs_generate_variant:Nn \object_allocate_incr:NNnnNN { NNVnNN }
+
+\cs_generate_variant:Nn \object_gallocate_incr:NNnnNN { NNVnNN }
+
+\cs_new_protected:Nn \object_allocate_gincr:NNnnNN
+  {
+    \object_create_set:NnnnNN #1 { #3 }{ #4 }
+      {
+        \@@_combine:Vn #2 { #3 }
+      }
+      #5 #6
+
+      \int_gincr:N #2
+  }
+
+\cs_new_protected:Nn \object_gallocate_gincr:NNnnNN
+  {
+    \object_create_gset:NnnnNN #1 { #3 }{ #4 }
+      {
+        \@@_combine:Vn #2 { #3 }
+      }
+      #5 #6
+
+      \int_gincr:N #2
+  }
+
+\cs_generate_variant:Nn \object_allocate_gincr:NNnnNN { NNVnNN }
+
+\cs_generate_variant:Nn \object_gallocate_gincr:NNnnNN { NNVnNN }
+
+%    \end{macrocode}
+% \end{macro}
 %
 %\begin{macro}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
 %Creates a new proxy object
