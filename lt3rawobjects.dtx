@@ -1036,6 +1036,37 @@
 %    \end{macrocode}
 %\end{macro}
 %
+% A simple forward list proxy
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \rawobjects_fwl_inst:n
+  {
+    \object_if_exist:nF
+      {
+        \object_address:nn { rawobjects }{ fwl ! #1 }
+      }
+      {
+        \proxy_create:nnN { rawobjects }{ fwl ! #1 } \c_object_private_str
+        \proxy_push_member
+          {
+            \object_address:nn { rawobjects }{ fwl ! #1 }
+          }
+          { next }{ str }
+      }
+  }
+
+\cs_new_protected:Nn \rawobjects_fwl_newnode:nnnNN
+  {
+    \rawobjects_fwl_inst:n { #1 }
+    \object_create:nnnNN
+      {
+        \object_address:nn { rawobjects }{ fwl ! #1 }
+      }
+      { #2 }{ #3 } #4 #5
+  }
+
+%    \end{macrocode}
+%
 %    \begin{macrocode}
 %</package>
 %    \end{macrocode}
