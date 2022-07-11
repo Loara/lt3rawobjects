@@ -418,13 +418,41 @@
 % \ExplSyntaxOff
 %
 % \section{Templated proxies}
-% At the current time there isn't a standardized approach to templated proxies. One problem of standardized templated proxies is how to define struct addresses for every kind of argument, especially the not expandable ones.
+% At the current time there isn't a standardized approach to templated proxies. One problem of standardized templated proxies is how to define struct addresses for every kind of argument (token lists, strings, integer expressions, non expandable arguments, ...).
 %
 % Even if there isn't currently a function to define every kind of templated proxy you can anyway define your templated proxy with your custom parameters. You simply need to define at least two functions:
 % \begin{itemize}
 %   \item an expandable macro that, given all the needed arguments, fully expands to the address of your templated proxy. This address can be obtained by calling \cs{object_address} \marg{module} \marg{id} where \meta{id} starts with the name of your templated proxy and is followed by a composition of specified arguments;
 %   \item a not expandable macro that tests if the templated proxy with specified arguments is instantiated and, if not, instantiate it with different calls to \cs{proxy_create} and \cs{proxy_push_member}.
 % \end{itemize}
+%
+% In order to apply these concepts we'll provide a simple implementation of a linked list with a template parameter representing the type of variable that holds our data. A linked list is simply a sequence of nodes where each node contains your data and a pointer to the next node. For the moment we 'll show a possiple implementation of a template proxy class for such |node| objects. 
+%
+% First to all we define an expandable macro that fully expands to our node name:
+% \begin{verbatim}
+% \cs_new:Nn \node_address:n
+%   {
+%     \object_address:nn { linklist }{ node - #1 }
+%   }
+% \end{verbatim}
+% where the |#1| argument is simply a string representing the type of data held by our linked list (for example |tl|, |str|, |int|, ...). Next we need a functions that instantiate our proxy address if it doesn't exist:
+% \begin{verbatim}
+% \cs_new_protected:Nn \node_instantiate:n 
+%   {
+%     \object_if_exist:nF {\node_address:n { #1 } }
+%       {
+%         \proxy_create:nnN { linklist }{ node - #1 }
+%           \c_object_public_str
+%         \proxy_push_member:nnn {\node_address:n { #1 } }
+%           { next }{ str }
+%         \proxy_push_member:nnn {\node_address:n { #1 } }
+%           { data }{ #1 } 
+%       }  
+%   }
+% \end{verbatim}  
+% As you can see when \cs{node_instantiate} is called it first test if the proxy object exists. If not then it creates a new proxy with that name and populates it with the specifications of two members: a |next| member variable of type |str| that points to the next node, and a |data| member of the specified type that holds your data.
+%
+% Clearly you can define new functions to work with such nodes, for example to test if the next node exists or not, to add and remove a node, search inside a linked list, ...
 %
 %
 %\end{documentation}
@@ -546,13 +574,14 @@
 %    \begin{macrocode}
 \prg_new_conditional:Nnn \object_if_local:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_scovar:n {#1} } \c_object_local_str
-  {
-    \prg_return_true:
-  }
-  {
-    \prg_return_false:
-  }
+  \str_if_eq:cNTF { \@@_object_scovar:n {#1} }
+    \c_object_local_str
+    {
+      \prg_return_true:
+    }
+    {
+      \prg_return_false:
+    }
 }
 
 \prg_new_conditional:Nnn \object_if_global:n {p, T, F, TF}
@@ -941,13 +970,14 @@
 
 \prg_new_conditional:Nnn \object_if_proxy:n {p, T, F, TF}
   {
-    \str_if_eq:cNTF { \@@_object_pxyvar:n { #1 } } \c_proxy_address_str
-    {
-      \prg_return_true:
-    }
-    {
-      \prg_return_false:
-    }
+    \str_if_eq:cNTF { \@@_object_pxyvar:n { #1 } } 
+	  \c_proxy_address_str
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
   }
 
 %    \end{macrocode}
