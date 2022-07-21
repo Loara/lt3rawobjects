@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/07/11 1.2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/07/11 2.0 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/07/11}{ 1.2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/07/11}{ 2.0 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -38,7 +38,7 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{1.2}
+% \NewDocumentCommand{\thvsn}{}{2.0}
 % \NewDocumentCommand{\thdta}{}{XXX}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
@@ -104,8 +104,13 @@
 %
 % You can retrieve the address of a near constant with the \cs{object_nconst_adr} function and of a remote constant with \cs{object_rconst_adr}.
 %
-% \section{Methods (from version \protect{\texttt{1.2}})}
-% Starting from version |1.2| you can define \emph{methods} inside an object. A method is just a function defined inside an object with the \cs{object_new_method} function (that uses internally \cs{cs_new:Nn}) and can be called via \cs{object_method_call}. The main advantage of using a method instead of a normal  function is that different objects can have methods with the same name, and this allows you to make your code more modular.
+% \section{Methods (from version \protect{\texttt{2.0}})}
+% Starting from version |1.2| you can define \emph{methods} inside an object. There're two different types of methods:
+% \begin{itemize}
+%   \item \emph{constant methods} are methods created with \cs{cs_new:Nn} functions and can't be modified once thay're instantiated. Like constant members they can be near or remote;
+%   \item \emph{variable methods} are instead created with \cs{cs_(g)set:Nn} functions and can be redefined after they're created.
+% \end{itemize}
+% comparing with C language constant methods are similar to C normal functions whereas variable ones to function pointers.
 %
 % \section{Library functions}
 %  \subsection{Base object functions}
@@ -238,13 +243,18 @@
 %
 % \subsection{Methods}
 %
-% \begin{function}[EXP]{\object_method_adr:nnn, \object_method_adr:Vnn}
+% \begin{function}[EXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn, \object_vmethod_adr:nnn, \object_vmethod_adr:Vnn}
 %  \begin{syntax}
 %   \cs{object_method_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
 %  \end{syntax}
-%  Fully expands to the address of specified method.
+%  Fully expands to the address of the specified
+%  \begin{itemize}
+%    \item near constant method if \cs{object_ncmethod_adr} is used;
+%    \item remote constant method if \cs{object_rcmethod_adr} is used;
+%    \item variable method if \cs{object_vmethod_adr} is used;
+%  \end{itemize}
 %
-% \fromV{1.2}
+% \fromV{2.0}
 % \end{function}
 %
 % \begin{function}{\object_new_method:nnnn, \object_new_method:Vnnn, \object_new_method_protected:nnnn, \object_new_method_protected:Vnnn, \object_new_method_nopar:nnnn, \object_new_method_nopar:Vnnn,\object_new_method_protected_nopar:nnnn, \object_new_method_protected_nopar:Vnnn}
@@ -1094,62 +1104,6 @@
   }
   
  \cs_generate_variant:Nn \object_method_call:nnn { Vnn }
-
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\object_method_call_var:nnn}
-% Calls the specified method and optionally generate the specified variant.
-%    \begin{macrocode}
-
-\cs_new:Nn \@@_par_push:nN
-  {
-    \str_case:nnF { #2 }
-	  {
-	    { c }
-		{
-		  \@@_par_next:nN { #1 N }
-		}
-	    { V }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	    { v }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	    { f }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	    { x }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	    { e }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	    { o }
-		{
-		  \@@_par_next:nN { #1 n }
-		}
-	  }
-	  {
-	    \@@_par_next:nN { #1 #2 }
-	  }
-  }
-  
-\cs_new:Nn \@@_par_next:nN
-  {
-    \quark_if_recursion_tail_stop_do:Nn #2 { #1 }
-	\@@_par_push:nN { #1 } #2
-  }
-   
-\cs_new:Nn \@@_par_trasform:n
-  {
-    \@@_par_next:nN {} #1 \q_recursion_tail \q_recursion_stop
-  }
 
 %    \end{macrocode}
 % \end{macro}
