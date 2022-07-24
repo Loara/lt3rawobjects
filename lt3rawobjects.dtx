@@ -64,7 +64,12 @@
 % \end{itemize}
 %
 % \section{Objects and proxies}
-% Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. Also in \thpkg\ objects are collections of variables, called member variables, which can be retrieved from a string representing that object. Such string is the \emph{address} of the object and act like the address of a structure in C.
+% Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. In \thpkg\ objects are collections of
+% \begin{itemize}
+%   \item \LaTeX3 variables, called \emph{members};
+%   \item \LaTeX3 functions, called \emph{methods}.
+% \end{itemize}
+% Both members and methods can be retrieved from a string representing the container object, that is the \emph{address} of the object and act like the address of a structure in C.
 %
 % An address is composed of two parts, the \emph{module} in which variables are created and an \emph{identifier} that identify uniquely the object inside its module. It's up to the caller that two different objects have different identifiers. The address of an object can be obtained with the \cs{object_address} function. Identifiers and module names should not contain numbers, |#| and |_| characters in order to avoid conflicts with automatically generated addresses.
 %
@@ -72,11 +77,11 @@
 %
 % In C each object/structure has a \emph{type} that tells the compiler how each object should be organized and instantiated in the memory. So if you need to create objects with the same structure you should first create a new \verb|struct| entity and then create object with such type.
 %
-% In \thpkg\ objects are created from an existing object with a particular structure that holds all the needed informations to organize their variables. Such objects that can be used to instantiate new objects are calles \emph{proxies} and the proxy object used to instantiate an object is its \emph{generator}. In order to create new objects with a specified proxy you can use the \cs{object_create} functions.
+% In \thpkg\ objects are created from an existing object, called \emph{proxy}, which holds all the needed informations to organize their members and methods. Every object is generated from a particular proxy object, called \emph{generator}. In order to create new objects with a specified proxy you can use the \cs{object_create} functions.
 %
 % Since proxies are themself objects we need a proxy to instantiate user defined proxies, you can use the |proxy| object in the |rawobjects| module to create you own proxy, which address is held by the \cs{c_proxy_address_str} variable. Proxies must be created from the |proxy| object otherwise they won't be recognized as proxies. Instead of using \cs{object_create} to create proxies you can directly use the function \cs{proxy_create}.
 %
-% Once you've created you proxy object you should specify its member variables that will be created in each object initialized with such proxy. You can add a variable specification with the \cs{proxy_push_member} function. Once you've added all yor variables specifications you can use your proxy to create objects. You should never modify a proxy once you've used it to create at least one object, since these modifications won't be updated on already created objects, leading to hidden errors in subsequential code.
+% Once you've created your proxy object you should populate it with the specifications of every member and method that every generated object should have. You can add a variable specification with \cs{proxy_push_member} and \cs{proxy_push_method} functions. After you've added all the specifications of your members/methods you can use your proxy to create objects. You should never modify a proxy once you've used it to create at least one object, since these modifications won't be updated on already created objects, leading to hidden errors in subsequential code. Moreover you can add new members/methods to an existing object without modifying its generator (such modifications only affect the specified object), see section \ref{sec:lib} for further information.
 %
 % When you create a new variable specification with the \cs{proxy_push_member} you can notice the presence of \meta{type} parameter. It represents the type of such variable and can be a standard type (like |tl|, |str|, |int|, |seq|, ...) or user defined types if the following functions are defined:
 %
@@ -84,6 +89,8 @@
 %  \item[] \cs{\meta{type}_new:N} and \verb|c| variant;
 %  \item[] \cs{\meta{type}_set_eq:NN} and \verb|cN|, \verb|Nc|, \verb|cc| variants.
 % \end{description}
+%
+% Methods are always created with \cs{cs_new:Nn} function, even if the object was declared local, and nonconstant methods will expand to nothing unless they're initialized with the \cs{object_method_set} or \cs{object_method_set_eq} functions.
 %
 % Every object, and so proxies too, is characterized by the following parameters:
 % \begin{itemize}
@@ -96,26 +103,19 @@
 % In a local/global/public/private object every member variable is declared local/global/public/private. Address of a member variable can be obtained with the \cs{object_member_adr} function, and you can instantiate new members that haven't been specified in its generator with the function \cs{object_new_member}. members created in this way aren't described by generator proxy, so its type can't be deduced and should be always specified in functions like \cs{object_member_adr} or \cs{object_member_use}.
 %
 % \section{Constants}
-% This feature is available only from version 1.1 of \thpkg. There're two different kinds of constants you can define on a object:
+% This feature is available only from version 1.1 of \thpkg\ and completely revisited from version 2.0. A constant member/methos is simply a variable/function that should not be modified once they're created. There're two different kinds of constants you can define inside objects:
 % \begin{enumerate}
 %   \item \emph{near constants} are constants defined directly inside the associated object;
 %   \item \emph{remote constants} are constants that are defined instead on the generator proxy and so every object generated with that proxy can access the constant.
 % \end{enumerate}
-% Currently it's possible to define only public constants, if you need private constants use member variables instead.
+% Currently it's possible to define only public constants, if you need private constants declare instead normal members/methods.
 %
 % Notice that all near constants declared on a proxy are automatically remote constants for every generated object, but remote constants for a proxy aren't directly accessible by generated objects.
 %
-% You can retrieve the address of a near constant with the \cs{object_nconst_adr} function and of a remote constant with \cs{object_rconst_adr}.
-%
-% \section{Methods (from version \protect{\texttt{2.0}})}
-% Starting from version |2.0| you can define \emph{methods} inside an object. There're two different types of methods:
-% \begin{itemize}
-%   \item \emph{constant methods} are methods created with \cs{cs_new:Nn} functions and can't be modified once thay're instantiated. Like constant members they can be near or remote;
-%   \item \emph{variable methods} are instead created with \cs{cs_(g)set:Nn} functions and can be redefined after they're created.
-% \end{itemize}
-% comparing with C language constant methods are similar to C normal functions whereas variable ones to function pointers.
+% You can retrieve the address of a near constant with \cs{object_nmember_adr}, \cs{object_nmethod_adr} functionn and of a remote constant with \cs{object_rmember_adr}, \cs{object_rmethod_adr}.
 %
 % \section{Library functions}
+% \label{sec:lib}
 %  \subsection{Base object functions}
 %
 % \begin{function}[EXP]{\object_address:nn}
@@ -176,7 +176,7 @@
 % \fromV{1.0}
 % \end{function}
 %
-%  \subsection{Operating with member variables and constants}
+%  \subsection{Members}
 %
 % \begin{function}[EXP]{\object_member_adr:nnn, \object_member_adr:Vnn, \object_member_adr:nnv, \object_member_adr:nn, \object_member_adr:Vn}
 %  \begin{syntax}
@@ -226,59 +226,85 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_nconst_adr:nnn, \object_nconst_adr:Vnn, \object_nconst_adr:vnn, \object_rconst_adr:nnn, \object_rconst_adr:Vnn}
+% \begin{function}[EXP]{\object_ncmember_adr:nnn, \object_ncmember_adr:Vnn, \object_ncmember_adr:vnn, \object_rcmember_adr:nnn, \object_rcmember_adr:Vnn}
 %  \begin{syntax}
-%   \cs{object_nconst_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{object_ncmember_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
-%  Fully expands to the address of specified near/remote constant.
+%  Fully expands to the address of specified near/remote constant member.
 %
-% \fromV{1.1}
+% \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_nconst_use:nnn, \object_nconst_use:Vnn, \object_rconst_use:nnn, \object_rconst_use:Vnn}
+% \begin{function}[EXP]{\object_ncmember_use:nnn, \object_ncmember_use:Vnn, \object_rcmember_use:nnn, \object_rcmember_use:Vnn}
 %  \begin{syntax}
-%   \cs{object_nconst_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{object_ncmember_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
-%  Uses the specified near/remote constant.
+%  Uses the specified near/remote constant member.
 %
-% \fromV{1.1}
+% \fromV{2.0}
 % \end{function}
 %
 % \subsection{Methods}
 %
-% \begin{function}[EXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn, \object_vmethod_adr:nnn, \object_vmethod_adr:Vnn}
+% \begin{function}[EXP]{\object_method_adr:nnn, \object_method_adr:Vnn}
 %  \begin{syntax}
 %   \cs{object_method_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
+%  \end{syntax}
+%  Fully expands to the address of the specified method.
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}{\object_new_method:nnn, \object_new_method:Vnn}
+%  \begin{syntax}
+%   \cs{object_new_method:nnn} \Arg{address} \Arg{method name} \Arg{method arguments} 
+%  \end{syntax}
+%  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn}. You can initialize it with \cs{object_method_set} function.
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}{\object_method_set:nnnn, \object_method_set:Vnnn}
+%  \begin{syntax}
+%   \cs{object_method_set:nnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
+%  \end{syntax}
+%  Sets (locally or globally) \meta{method name} body to \meta{code}.
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}[EXP]{\object_method_call:nnn, \object_method_call:Vnn}
+%  \begin{syntax}
+%   \cs{object_method_call:nnn} \marg{address} \marg{method name} \marg{method variant}
+%  \end{syntax}
+%  Calls the specified method. This function is expandable if and only if the specified method was not declared |protected|.
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}[EXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn}
+%  \begin{syntax}
+%   \cs{object_ncmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
 %  \end{syntax}
 %  Fully expands to the address of the specified
 %  \begin{itemize}
 %    \item near constant method if \cs{object_ncmethod_adr} is used;
-%    \item remote constant method if \cs{object_rcmethod_adr} is used;
-%    \item variable method if \cs{object_vmethod_adr} is used;
+%    \item remote constant method if \cs{object_rcmethod_adr} is used.
 %  \end{itemize}
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\object_new_cmethod:nnnn, \object_new_cmethod:Vnnn, \object_new_vmethod:nnnn, \object_new_vmethod:Vnnn}
+% \begin{function}{\object_new_cmethod:nnnn, \object_new_cmethod:Vnnn}
 %  \begin{syntax}
-%   \cs{object_new_vmethod:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
+%   \cs{object_new_cmethod:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
 %  \end{syntax}
-%  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn} (for \cs{object_new_cmethod}) or to \cs{cs_(g)set:Nn} (for \cs{object_new_vmethod}).
+%  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn}.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\object_cmethod_var:nnnn, \object_cmethod_var:Vnnn, \object_vmethod_var:nnnn, \object_vmethod_var:Vnnn}
-%  \begin{syntax}
-%   \cs{object_cmethod_var:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{method variant}
-%  \end{syntax}
-%  Creates a new variant for  the specified method.
-%
-% \fromV{2.0}
-% \end{function}
-%
-% \begin{function}[EXP]{\object_ncmethod_call:nnn, \object_ncmethod_call:Vnn, \object_rcmethod_call:nnn, \object_rcmethod_call:Vnn, \object_vmethod_call:nnn, \object_vmethod_call:Vnn}
+% \begin{function}[EXP]{\object_ncmethod_call:nnn, \object_ncmethod_call:Vnn, \object_rcmethod_call:nnn, \object_rcmethod_call:Vnn}
 %  \begin{syntax}
 %   \cs{object_ncmethod_call:nnn} \marg{address} \marg{method name} \marg{method variant}
 %  \end{syntax}
@@ -749,7 +775,7 @@
   {
     \object_member_adr:nnv { #1 }{ #2 }
       {
-        \object_rconst_adr:nnn { #1 }
+        \object_rcmember_adr:nnn { #1 }
           { #2 _ type }{ str }
       }
   }
@@ -764,7 +790,7 @@
 
 \cs_new:Nn \object_member_type:nn
   {
-    \object_rconst_use:nnn { #1 }
+    \object_rcmember_use:nnn { #1 }
       { #2 _ type }{ str }
   }
 
@@ -826,7 +852,7 @@
   {
     \object_member_use:nnv { #1 }{ #2 }
       {
-        \object_rconst_adr:nnn { #1 }
+        \object_rcmember_adr:nnn { #1 }
           { #2 _ type }{ str }
       }
   }
@@ -859,7 +885,7 @@
   {
     \object_member_set_eq:nnvN { #1 }{ #2 }
       {
-        \object_rconst_adr:nnn { #1 }
+        \object_rcmember_adr:nnn { #1 }
           { #2 _ type }{ str }
       } #3
   }
@@ -869,49 +895,49 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_nconst_adr:nnn, \object_rconst_adr:nnn}
+%\begin{macro}{\object_ncmember_adr:nnn, \object_rcmember_adr:nnn}
 % Get the address of a near/remote constant.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_nconst_adr:nnn
+\cs_new:Nn \object_ncmember_adr:nnn
   {
     c _ #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
   }
 
-\cs_generate_variant:Nn \object_nconst_adr:nnn { Vnn, vnn }
+\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
 
-\cs_new:Nn \object_rconst_adr:nnn
+\cs_new:Nn \object_rcmember_adr:nnn
   {
-    \object_nconst_adr:vnn { \@@_object_pxyvar:n { #1 } }
+    \object_ncmember_adr:vnn { \@@_object_pxyvar:n { #1 } }
       { #2 }{ #3 }
   }
 
-\cs_generate_variant:Nn \object_rconst_adr:nnn { Vnn }
+\cs_generate_variant:Nn \object_rcmember_adr:nnn { Vnn }
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_nconst_use:nnn, \object_rconst_use:nnn}
+%\begin{macro}{\object_ncmember_use:nnn, \object_rcmember_use:nnn}
 % Uses a near/remote constant.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_nconst_use:nnn
+\cs_new:Nn \object_ncmember_use:nnn
   {
     \cs_if_exist_use:cT { #3 _ use:c }
       {
-        { \object_nconst_adr:nnn { #1 }{ #2 }{ #3 } }
+        { \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 } }
       }
   }
 
-\cs_new:Nn \object_rconst_use:nnn
+\cs_new:Nn \object_rcmember_use:nnn
   {
     \cs_if_exist_use:cT { #3 _ use:c }
       {
-        { \object_rconst_adr:nnn { #1 }{ #2 }{ #3 } }
+        { \object_rcmember_adr:nnn { #1 }{ #2 }{ #3 } }
       }
   }
 
-\cs_generate_variant:Nn \object_nconst_use:nnn { Vnn }
-\cs_generate_variant:Nn \object_rconst_use:nnn { Vnn }
+\cs_generate_variant:Nn \object_ncmember_use:nnn { Vnn }
+\cs_generate_variant:Nn \object_rcmember_use:nnn { Vnn }
 
 %    \end{macrocode}
 %\end{macro}
@@ -925,7 +951,7 @@
   {
     \use:c { #1 _ const:cn }
       {
-        \object_nconst_adr:nnn { #2 }{ #3 }{ #1 }
+        \object_ncmember_adr:nnn { #2 }{ #3 }{ #1 }
       }
       { #4 }
   }
@@ -978,7 +1004,7 @@
   {
     \seq_const_from_clist:cn
       {
-        \object_nconst_adr:nnn { #1 }{ #2 }{ seq }
+        \object_ncmember_adr:nnn { #1 }{ #2 }{ seq }
       }
       { #3 }
   }
@@ -996,7 +1022,7 @@
   {
     \prop_const_from_keyval:cn
       {
-        \object_nconst_adr:nnn { #1 }{ #2 }{ prop }
+        \object_ncmember_adr:nnn { #1 }{ #2 }{ prop }
       }
       { #3 }
   }
@@ -1007,7 +1033,7 @@
 %\end{macro}
 %
 %
-% \begin{macro}{\object_ncmethod_adr:nnn, \object_rcmethod_adr:nnn, \object_vmethod_adr:nnn}
+% \begin{macro}{\object_ncmethod_adr:nnn, \object_rcmethod_adr:nnn, \object_method_adr:nnn}
 % Fully expands to the method address.
 %    \begin{macrocode}
 
@@ -1027,25 +1053,23 @@
       { #2 }{ #3 }
   }
 
-\cs_new:Nn \object_vmethod_adr:nnn
+\cs_new:Nn \object_method_adr:nnn
   {
-    \object_if_global:nTF { #1 }
-      {
-        #1 \tl_to_str:n { _ GMETHOD _ #2 : #3 }
-      }
-      {
-        #1 \tl_to_str:n { _ LMETHOD _ #2 : #3 }
-      }
+    \object_if_private:nT { #1 }
+	  {
+	    __
+	  }
+	#1 \tl_to_str:n { _ METHOD _ #2 : #3 }
   }
 
 \cs_generate_variant:Nn \object_ncmethod_adr:nnn { Vnn , vnn }
 \cs_generate_variant:Nn \object_rcmethod_adr:nnn { Vnn }
-\cs_generate_variant:Nn \object_vmethod_adr:nnn { Vnn }
+\cs_generate_variant:Nn \object_method_adr:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_new_cmethod:nnnn, \object_new_vmethod:nnnn}
+% \begin{macro}{\object_new_cmethod:nnnn, \object_new_method:nnn}
 % Creates a new method
 %    \begin{macrocode}
 
@@ -1058,93 +1082,44 @@
 	  { #4 }
   }
 
-\cs_new_protected:Nn \object_new_vmethod:nnnn
+\cs_new_protected:Nn \object_new_method:nnn
   {
-    \object_if_global:nTF { #1 }
-      {
-        \cs_gset:cn
-          {
-            \object_vmethod_adr:nnn
-              { #1 }{ #2 }{ #3 }
-          }
-          { #4 }
-      }
-      {
-        \cs_set:cn
-          {
-            \object_vmethod_adr:nnn
-              { #1 }{ #2 }{ #3 }
-          }
-          { #4 }
-      }
-  }
-  
-\cs_new_protected:Nn \object_new_method_protected:nnnn
-  {
-    \cs_new_protected:cn
+    \cs_new:cn
 	  {
 	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
-	  { #4 }
-  }
-  
-\cs_new_protected:Nn \object_new_method_nopar:nnnn
-  {
-    \cs_new_nopar:cn
-	  {
-	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-	  { #4 }
-  }
-  
-\cs_new_protected:Nn \object_new_method_protected_nopar:nnnn
-  {
-    \cs_new_protected_nopar:cn
-	  {
-	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-	  { #4 }
+	  {}
   }
   
 \cs_generate_variant:Nn \object_new_cmethod:nnnn { Vnnn }
-\cs_generate_variant:Nn \object_new_vmethod:nnnn { Vnnn }
-
-\cs_generate_variant:Nn \object_new_method_protected:nnnn { Vnnn }
-\cs_generate_variant:Nn \object_new_method_nopar:nnnn { Vnnn }
-\cs_generate_variant:Nn \object_new_method_protected_nopar:nnnn { Vnnn }
+\cs_generate_variant:Nn \object_new_method:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_cmethod_var:nnnn, \object_vmethod_var:nnnn}
-% Generates a method variant.
+%\begin{macro}{\object_method_set:nnnn}
+% Set the body od a method.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_cmethod_var:nnnn
+\cs_new_protected:Nn \object_method_set:nnnn
   {
-    \cs_generate_variant:cn
-	  {
-	    \object_cmethod_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-	  { #4 }
+    \@@_force_scope:n { #1 }
+    \cs_if_exist_use:cT
+      {
+        cs _ \object_if_global:nT { #1 }{ g } set :cn
+      }
+      {
+        { \object_method_adr:nnn { #1 }{ #2 }{ #3 } } { #4 }
+      }
   }
 
-\cs_new_protected:Nn \object_vmethod_var:nnnn
-  {
-    \cs_generate_variant:cn
-	  {
-	    \object_vmethod_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-	  { #4 }
-  }
-  
-\cs_generate_variant:Nn \object_cmethod_var:nnnn { Vnnn }
-\cs_generate_variant:Nn \object_vmethod_var:nnnn { Vnnn }
+\cs_generate_variant:Nn \object_method_set:nnnn { Vnnn }
 
 %    \end{macrocode}
-% \end{macro}
+%\end{macro}
+
 %
-% \begin{macro}{\object_ncmethod_call:nnn, \object_rcmethod_call:nnn, \object_vmethod_call:nnn}
+% \begin{macro}{\object_ncmethod_call:nnn, \object_rcmethod_call:nnn, \object_method_call:nnn}
 % Calls the specified method.
 %    \begin{macrocode}
 
@@ -1164,17 +1139,17 @@
 	  }
   }
 
-\cs_new:Nn \object_vmethod_call:nnn
+\cs_new:Nn \object_method_call:nnn
   {
     \use:c
 	  {
-	    \object_vmethod_adr:nnn { #1 }{ #2 }{ #3 }
+	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
   }
   
 \cs_generate_variant:Nn \object_ncmethod_call:nnn { Vnn }
 \cs_generate_variant:Nn \object_rcmethod_call:nnn { Vnn }
-\cs_generate_variant:Nn \object_vmethod_call:nnn { Vnn }
+\cs_generate_variant:Nn \object_method_call:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
@@ -1302,7 +1277,7 @@
       {
         \object_new_member:nnv { #2 }{ ##1 }
           {
-            \object_nconst_adr:nnn { #1 }{ ##1 _ type }{ str }
+            \object_ncmember_adr:nnn { #1 }{ ##1 _ type }{ str }
           }
       }
   }
