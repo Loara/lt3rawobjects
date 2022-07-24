@@ -411,7 +411,7 @@
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{function}{\object_create_set:NnnnNN, \object_create_set:NVnnNN, \object_create_gset:NnnnNN, \object_create_gset:NVnnNN}
+% \begin{function}{\object_create_set:NnnnNN, \object_create_set:NVnnNN, \object_create_set:NnnfNN, \object_create_gset:NnnnNN, \object_create_gset:NVnnNN, \object_create_gset:NnnfNN}
 %  \begin{syntax}
 %   \cs{object_create_set:NnnnNN} \meta{str var} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
 %  \end{syntax}
@@ -1243,8 +1243,8 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN}
-%Creates an object from a proxy
+% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN}
+% Creates an object from a proxy
 %    \begin{macrocode}
 
 \msg_new:nnn { aa }{ mess }{ #1 }
@@ -1303,8 +1303,8 @@
   }
 
 \cs_generate_variant:Nn \object_create:nnnNN { VnnNN }
-\cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN }
-\cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN }
+\cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
+\cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
 
 %    \end{macrocode}
 %\end{macro}
@@ -1313,18 +1313,26 @@
 % Create an address and use it to instantiate an object
 %    \begin{macrocode}
 
-\cs_new:Nn \@@_combine:nn
+\cs_new:Nn \@@_combine_aux:nnn
   {
-    anon . #2 . #1
+    anon . #3 . #2 . #1
   }
+  
+\cs_generate_variant:Nn \@@_combine_aux:nnn { Vnf }
 
-\cs_generate_variant:Nn \@@_combine:nn { Vn }
+\cs_new:Nn \@@_combine:Nn
+  {
+    \@@_combine_aux:Vnf #1 { #2 }
+	  {
+	    \cs_to_str:N #1
+	  }
+  }
 
 \cs_new_protected:Nn \object_allocate_incr:NNnnNN
   {
-    \object_create_set:NnnnNN #1 { #3 }{ #4 }
+    \object_create_set:NnnfNN #1 { #3 }{ #4 }
       {
-        \@@_combine:Vn #2 { #3 }
+        \@@_combine:Nn #2 { #3 }
       }
       #5 #6
 
@@ -1333,9 +1341,9 @@
 
 \cs_new_protected:Nn \object_gallocate_incr:NNnnNN
   {
-    \object_create_gset:NnnnNN #1 { #3 }{ #4 }
+    \object_create_gset:NnnfNN #1 { #3 }{ #4 }
       {
-        \@@_combine:Vn #2 { #3 }
+        \@@_combine:Nn #2 { #3 }
       }
       #5 #6
 
@@ -1348,9 +1356,9 @@
 
 \cs_new_protected:Nn \object_allocate_gincr:NNnnNN
   {
-    \object_create_set:NnnnNN #1 { #3 }{ #4 }
+    \object_create_set:NnnfNN #1 { #3 }{ #4 }
       {
-        \@@_combine:Vn #2 { #3 }
+        \@@_combine:Nn #2 { #3 }
       }
       #5 #6
 
@@ -1359,9 +1367,9 @@
 
 \cs_new_protected:Nn \object_gallocate_gincr:NNnnNN
   {
-    \object_create_gset:NnnnNN #1 { #3 }{ #4 }
+    \object_create_gset:NnnfNN #1 { #3 }{ #4 }
       {
-        \@@_combine:Vn #2 { #3 }
+        \@@_combine:Nn #2 { #3 }
       }
       #5 #6
 
