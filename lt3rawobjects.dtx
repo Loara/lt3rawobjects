@@ -100,7 +100,9 @@
 %  \item a parameter saying if the object is \emph{public} or \emph{private};
 %  \item zero or more member variables.
 % \end{itemize}
-% In a local/global/public/private object every member variable is declared local/global/public/private. Address of a member variable can be obtained with the \cs{object_member_adr} function, and you can instantiate new members that haven't been specified in its generator with the function \cs{object_new_member}. members created in this way aren't described by generator proxy, so its type can't be deduced and should be always specified in functions like \cs{object_member_adr} or \cs{object_member_use}.
+% In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only the assignation to members and methods is performed locally/globally since the allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
+%
+% Address of members/methods can be obtained with \cs{object_member_adr},\cs{object_method_adr} functions, and you can instantiate new members (or methods) that haven't been specified in its generator with \cs{object_new_member} (\cs{object_new_method}). Members created in this way aren't described by generator proxy, so its type can't be deduced and should be always specified in functions like \cs{object_member_adr} or \cs{object_member_use}.
 %
 % \section{Constants}
 % This feature is available only from version 1.1 of \thpkg\ and completely revisited from version 2.0. A constant member/methos is simply a variable/function that should not be modified once they're created. There're two different kinds of constants you can define inside objects:
