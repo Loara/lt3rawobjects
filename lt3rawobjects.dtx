@@ -190,6 +190,18 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn, \object_member_if_exist:nn, \object_member_if_exist:Vn}
+%  \begin{syntax}
+%   \cs{object_member_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{object_member_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
+%   \cs{object_member_if_exist_p:nn} \Arg{address} \Arg{member name}
+%   \cs{object_member_if_exist:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
+%  \end{syntax}
+%  Tests if the specified member exist.
+%
+% \fromV{2.0}
+% \end{function}
+%
 % \begin{function}[EXP]{\object_member_type:nn, \object_member_type:Vn}
 %  \begin{syntax}
 %   \cs{object_member_type:nn} \marg{address} \marg{member name}
@@ -237,6 +249,16 @@
 % \fromV{2.0}
 % \end{function}
 %
+% \begin{function}[pTF]{\object_ncmember_if_exist:nnn, \object_ncmember_if_exist:Vnn, \object_rcmember_if_exist:nnn, \object_rcmember_if_exist:Vnn}
+%  \begin{syntax}
+%   \cs{object_ncmember_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{object_ncmember_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
+%  \end{syntax}
+%  Tests if the specified member constant exist.
+%
+% \fromV{2.0}
+% \end{function}
+%
 % \begin{function}[EXP]{\object_ncmember_use:nnn, \object_ncmember_use:Vnn, \object_rcmember_use:nnn, \object_rcmember_use:Vnn}
 %  \begin{syntax}
 %   \cs{object_ncmember_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
@@ -253,6 +275,16 @@
 %   \cs{object_method_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
 %  \end{syntax}
 %  Fully expands to the address of the specified method.
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}[pTF]{\object_method_if_exist:nnn, \object_method_if_exist:Vnn}
+%  \begin{syntax}
+%   \cs{object_method_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{object_method_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
+%  \end{syntax}
+%  Tests if the specified method exist.
 %
 % \fromV{2.0}
 % \end{function}
@@ -293,6 +325,16 @@
 %    \item near constant method if \cs{object_ncmethod_adr} is used;
 %    \item remote constant method if \cs{object_rcmethod_adr} is used.
 %  \end{itemize}
+%
+% \fromV{2.0}
+% \end{function}
+%
+% \begin{function}[pTF]{\object_ncmethod_if_exist:nnn, \object_ncmethod_if_exist:Vnn, \object_rcmethod_if_exist:nnn, \object_rcmethod_if_exist:Vnn}
+%  \begin{syntax}
+%   \cs{object_ncmethod_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{object_ncmethod_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
+%  \end{syntax}
+%  Tests if the specified method constant exist.
 %
 % \fromV{2.0}
 % \end{function}
@@ -820,6 +862,46 @@
 
 %    \end{macrocode}
 %
+% \begin{macro}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:nn}
+% Tests if the specified member exists
+%    \begin{macrocode}
+
+\prg_new_conditional:Nnn \object_member_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_member_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_new_conditional:Nnn \object_member_if_exist:nn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_member_adr:nn { #1 }{ #2 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_generate_conditional_variant:Nnn \object_member_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+\prg_generate_conditional_variant:Nnn \object_member_if_exist:nn
+  { Vn }{ p, T, F, TF }
+
+%    \end{macrocode}
+% \end{macro}
+
 %\begin{macro}{\object_new_member:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
@@ -917,6 +999,46 @@
 \cs_generate_variant:Nn \object_rcmember_adr:nnn { Vnn }
 %    \end{macrocode}
 %\end{macro}
+%
+% \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn}
+% Tests if the specified member constant exists.
+%    \begin{macrocode}
+
+\prg_new_conditional:Nnn \object_ncmember_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_new_conditional:Nnn \object_rcmember_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_rcmember_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_generate_conditional_variant:Nnn \object_ncmember_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+\prg_generate_conditional_variant:Nnn \object_rcmember_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+
+%    \end{macrocode}
+% \end{macro}
 %
 %\begin{macro}{\object_ncmember_use:nnn, \object_rcmember_use:nnn}
 % Uses a near/remote constant.
@@ -1067,6 +1189,62 @@
 \cs_generate_variant:Nn \object_ncmethod_adr:nnn { Vnn , vnn }
 \cs_generate_variant:Nn \object_rcmethod_adr:nnn { Vnn }
 \cs_generate_variant:Nn \object_method_adr:nnn { Vnn }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn, \object_member_if_exist:nnn}
+% Tests if the specified member constant exists.
+%    \begin{macrocode}
+
+\prg_new_conditional:Nnn \object_ncmethod_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_new_conditional:Nnn \object_rcmethod_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_rcmethodr_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_new_conditional:Nnn \object_method_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_methodr_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_generate_conditional_variant:Nnn \object_ncmethod_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+\prg_generate_conditional_variant:Nnn \object_rcmethod_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+\prg_generate_conditional_variant:Nnn \object_method_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
