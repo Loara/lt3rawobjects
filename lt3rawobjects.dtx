@@ -71,50 +71,29 @@
 % \end{itemize}
 % Both members and methods can be retrieved from a string representing the container object, that is the \emph{address} of the object and act like the address of a structure in C.
 %
-% An address is composed of two parts, the \emph{module} in which variables are created and an \emph{identifier} that identify uniquely the object inside its module. It's up to the caller that two different objects have different identifiers. The address of an object can be obtained with the \cs{object_address} function. Identifiers and module names should not contain numbers, |#| and |_| characters in order to avoid conflicts with automatically generated addresses.
+% An address is composed of two parts: the \emph{module} in which variables are created and an \emph{identifier} that identify uniquely the object inside its module. It's up to the caller that two different objects have different identifiers. The address of an object can be obtained with the \cs{object_address} function. Identifiers and module names should not contain numbers, |#|, |:| and |_| characters in order to avoid conflicts with hidden auxiliary commands. However you can use non letter characters like |-| in order to organize your members and methods.
 %
-% Also control sequences have an address, but for them it's simply any token list for which a |c| expansion retrieves the original control sequence. We impose also that any |x| or |e| fully expansion will be a string representing the control sequence's name, for this reason inside an address |#| characters and \cs{exp_not} functions aren't allowed.
+% Moreover normal control sequences have an address too, but it's simply any token list for which a |c| expansion retrieves the original control sequence. We impose also that any |x| or |e| fully expansion will be a string representing the control sequence's name, for this reason inside an address |#| characters and \cs{exp_not} functions aren't allowed.
 %
-% In C each object/structure has a \emph{type} that tells the compiler how each object should be organized and instantiated in the memory. So if you need to create objects with the same structure you should first create a new \verb|struct| entity and then create object with such type.
-%
-% In \thpkg\ objects are created from an existing object, called \emph{proxy}, which holds all the needed informations to organize their members and methods. Every object is generated from a particular proxy object, called \emph{generator}. In order to create new objects with a specified proxy you can use the \cs{object_create} functions.
+% In \thpkg\ objects are created from an existing object that have a suitable inner structure. These objects that can be used to create other objects are called \emph{proxy}. Every object is generated from a particular proxy object, called \emph{generator}, and new objects can be created from a specified proxy with the \cs{object_create} functions.
 %
 % Since proxies are themself objects we need a proxy to instantiate user defined proxies, you can use the |proxy| object in the |rawobjects| module to create you own proxy, which address is held by the \cs{c_proxy_address_str} variable. Proxies must be created from the |proxy| object otherwise they won't be recognized as proxies. Instead of using \cs{object_create} to create proxies you can directly use the function \cs{proxy_create}.
 %
-% Once you've created your proxy object you should populate it with the specifications of every member and method that every generated object should have. You can add a variable specification with \cs{proxy_push_member} and \cs{proxy_push_method} functions. After you've added all the specifications of your members/methods you can use your proxy to create objects. You should never modify a proxy once you've used it to create at least one object, since these modifications won't be updated on already created objects, leading to hidden errors in subsequential code. Moreover you can add new members/methods to an existing object without modifying its generator (such modifications only affect the specified object), see section \ref{sec:lib} for further information.
+% Each member or method inside an object belongs to one of these categories:
+% \begin{enumerate}
+%   \item \emph{mutables};
+%   \item \emph{near constants};
+%   \item \emph{remote constants}.
+% \end{enumerate}
+% \textbf{Warning}: Currently only members (variables) can be mutables, not methods. Mutable members can be added in future releases if they'll be needed.
 %
-% When you create a new variable specification with the \cs{proxy_push_member} you can notice the presence of \meta{type} parameter. It represents the type of such variable and can be a standard type (like |tl|, |str|, |int|, |seq|, ...) or user defined types if the following functions are defined:
+% Members declared as mutables works as normal variables: you can modify their value and retrieve it at any time. Instead members and methods declared as near constant works as constants: when you create them you must specify their initial value (or function body for methods) and you won't be allowed to modify it later. Remote constants for an object are simply near constants defined in its generator: all near constants defined inside a proxy are automatically visible as remote constants to every object generated from that proxy.
 %
-% \begin{description}
-%  \item[] \cs{\meta{type}_new:N} and \verb|c| variant;
-%  \item[] \cs{\meta{type}_set_eq:NN} and \verb|cN|, \verb|Nc|, \verb|cc| variants.
-% \end{description}
+% Instead of creating mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
 %
-% Methods are always created with \cs{cs_new:Nn} function, even if the object was declared local, and nonconstant methods will expand to nothing unless they're initialized with the \cs{object_method_set} or \cs{object_method_set_eq} functions.
-%
-% Every object, and so proxies too, is characterized by the following parameters:
-% \begin{itemize}
-%  \item the \emph{module} in which it has been created;
-%  \item the address of the proxy generator;
-%  \item a parameter saying if the object is \emph{local} or \emph{global};
-%  \item a parameter saying if the object is \emph{public} or \emph{private};
-%  \item zero or more member variables.
-% \end{itemize}
-% In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only the assignation to members and methods is performed locally/globally since the allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
+% Objects can be declared public, private and local, global. In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only the assignation to members and methods is performed locally/globally since the allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
 %
 % Address of members/methods can be obtained with \cs{object_member_adr},\cs{object_method_adr} functions, and you can instantiate new members (or methods) that haven't been specified in its generator with \cs{object_new_member} (\cs{object_new_method}). Members created in this way aren't described by generator proxy, so its type can't be deduced and should be always specified in functions like \cs{object_member_adr} or \cs{object_member_use}.
-%
-% \section{Constants}
-% This feature is available only from version 1.1 of \thpkg\ and completely revisited from version 2.0. A constant member/methos is simply a variable/function that should not be modified once they're created. There're two different kinds of constants you can define inside objects:
-% \begin{enumerate}
-%   \item \emph{near constants} are constants defined directly inside the associated object;
-%   \item \emph{remote constants} are constants that are defined instead on the generator proxy and so every object generated with that proxy can access the constant.
-% \end{enumerate}
-% Currently it's possible to define only public constants, if you need private constants declare instead normal members/methods.
-%
-% Notice that all near constants declared on a proxy are automatically remote constants for every generated object, but remote constants for a proxy aren't directly accessible by generated objects.
-%
-% You can retrieve the address of a near constant with \cs{object_nmember_adr}, \cs{object_nmethod_adr} functionn and of a remote constant with \cs{object_rmember_adr}, \cs{object_rmethod_adr}.
 %
 % \section{Library functions}
 % \label{sec:lib}
@@ -735,13 +714,14 @@
 
 \prg_new_conditional:Nnn \object_if_global:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_scovar:n {#1} } \c_object_global_str
-  {
-    \prg_return_true:
-  }
-  {
-    \prg_return_false:
-  }
+  \str_if_eq:cNTF { \@@_object_scovar:n {#1} }
+    \c_object_global_str
+    {
+      \prg_return_true:
+    }
+    {
+      \prg_return_false:
+    }
 }
 
 \prg_new_conditional:Nnn \object_if_public:n {p, T, F, TF}
@@ -784,9 +764,9 @@
 
 \cs_new:Nn \@@_scope:n
   {
-    \object_if_global:nTF { #1 }
+    \object_if_local:nTF { #1 }
       {
-        g
+        l
       }
       {
         \str_if_eq:cNTF { \@@_object_scovar:n { #1 } }
@@ -795,14 +775,19 @@
             c
           }
           {
-            l
+            g
           }
       }
   }
 
-\cs_new:Nn \object_member_adr:nnn
+\cs_new:Nn \@@_scope_pfx:n
   {
-    \@@_scope:n { #1 }
+    \object_if_local:nF { #1 }
+      { g }
+  }
+
+\cs_new:Nn \@@_vis_var:n
+  {
     \object_if_private:nTF { #1 }
       {
         __
@@ -810,6 +795,20 @@
       {
         _
       }
+  }
+
+\cs_new:Nn \@@_vis_fun:n
+  {
+    \object_if_private:nT { #1 }
+      {
+        __
+      }
+  }
+
+\cs_new:Nn \object_member_adr:nnn
+  {
+    \@@_scope:n { #1 }
+    \@@_vis_var:n { #1 }
     #1 \tl_to_str:n { _ MEMBER _ #2 _ #3 }
   }
 
@@ -956,7 +955,7 @@
     \@@_force_scope:n { #1 }
     \cs_if_exist_use:cT
       {
-        #3 _ \object_if_global:nT { #1 }{ g } set _ eq:cN
+        #3 _ \@@_scope_pfx:n { #1 } set _ eq:cN
       }
       {
         { \object_member_adr:nnn { #1 }{ #2 }{ #3 } } #4
@@ -1179,10 +1178,7 @@
 
 \cs_new:Nn \object_method_adr:nnn
   {
-    \object_if_private:nT { #1 }
-	  {
-	    __
-	  }
+    \@@_vis_fun:n { #1 }
 	#1 \tl_to_str:n { _ METHOD _ #2 : #3 }
   }
 
@@ -1286,7 +1282,7 @@
     \@@_force_scope:n { #1 }
     \cs_if_exist_use:cT
       {
-        cs _ \object_if_global:nT { #1 }{ g } set :cn
+        cs _ \@@_scope_pfx:n { #1 } set :cn
       }
       {
         { \object_method_adr:nnn { #1 }{ #2 }{ #3 } } { #4 }
