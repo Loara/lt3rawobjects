@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/07/11 2.0 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/08/03 2.0 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/07/11}{ 2.0 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/08/03}{ 2.0 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -39,7 +39,7 @@
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
 % \NewDocumentCommand{\thvsn}{}{2.0}
-% \NewDocumentCommand{\thdta}{}{XXX}
+% \NewDocumentCommand{\thdta}{}{2022/08/03}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
 % \title{The \pkg{lt3rawobjects} package}
@@ -87,13 +87,13 @@
 % \end{enumerate}
 % \textbf{Warning}: Currently only members (variables) can be mutables, not methods. Mutable members can be added in future releases if they'll be needed.
 %
-% Members declared as mutables works as normal variables: you can modify their value and retrieve it at any time. Instead members and methods declared as near constant works as constants: when you create them you must specify their initial value (or function body for methods) and you won't be allowed to modify it later. Remote constants for an object are simply near constants defined in its generator: all near constants defined inside a proxy are automatically visible as remote constants to every object generated from that proxy.
+% Members declared as mutables works as normal variables: you can modify their value and retrieve it at any time. Instead members and methods declared as near constant works as constants: when you create them you must specify their initial value (or function body for methods) and you won't be allowed to modify it later. Remote constants for an object are simply near constants defined in its generator: all near constants defined inside a proxy are automatically visible as remote constants to every object generated from that proxy. Usually functions involving near constants have |nc| inside their name, and |rc| if instead they use remote constants.
 %
 % Instead of creating mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
 %
-% Objects can be declared public, private and local, global. In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only the assignation to members and methods is performed locally/globally since the allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
+% Objects can be declared public, private and local, global. In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only assignation to mutable members is performed locally/globally since allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
 %
-% Address of members/methods can be obtained with \cs{object_member_adr},\cs{object_method_adr} functions, and you can instantiate new members (or methods) that haven't been specified in its generator with \cs{object_new_member} (\cs{object_new_method}). Members created in this way aren't described by generator proxy, so its type can't be deduced and should be always specified in functions like \cs{object_member_adr} or \cs{object_member_use}.
+% Address of members/methods can be obtained with functions in the form \cs{object_\meta{category}\meta{item}_adr} where \meta{item} is |member| or |method| and \meta{category} is empty for mutable members, |nc| for near constants and |rc| for remote constants. For example \cs{object_rcmethod_adr} retrieves the address of specified remote constant method.
 %
 % \section{Library functions}
 % \label{sec:lib}
@@ -248,52 +248,7 @@
 % \end{function}
 %
 % \subsection{Methods}
-%
-% \begin{function}[EXP]{\object_method_adr:nnn, \object_method_adr:Vnn}
-%  \begin{syntax}
-%   \cs{object_method_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
-%  \end{syntax}
-%  Fully expands to the address of the specified method.
-%
-% \fromV{2.0}
-% \end{function}
-%
-% \begin{function}[pTF]{\object_method_if_exist:nnn, \object_method_if_exist:Vnn}
-%  \begin{syntax}
-%   \cs{object_method_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
-%   \cs{object_method_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
-%  \end{syntax}
-%  Tests if the specified method exist.
-%
-% \fromV{2.0}
-% \end{function}
-%
-% \begin{function}{\object_new_method:nnn, \object_new_method:Vnn}
-%  \begin{syntax}
-%   \cs{object_new_method:nnn} \Arg{address} \Arg{method name} \Arg{method arguments} 
-%  \end{syntax}
-%  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn}. You can initialize it with \cs{object_method_set} function.
-%
-% \fromV{2.0}
-% \end{function}
-%
-% \begin{function}{\object_method_set:nnnn, \object_method_set:Vnnn}
-%  \begin{syntax}
-%   \cs{object_method_set:nnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
-%  \end{syntax}
-%  Sets (locally or globally) \meta{method name} body to \meta{code}.
-%
-% \fromV{2.0}
-% \end{function}
-%
-% \begin{function}[EXP]{\object_method_call:nnn, \object_method_call:Vnn}
-%  \begin{syntax}
-%   \cs{object_method_call:nnn} \marg{address} \marg{method name} \marg{method variant}
-%  \end{syntax}
-%  Calls the specified method. This function is expandable if and only if the specified method was not declared |protected|.
-%
-% \fromV{2.0}
-% \end{function}
+% Currentlu only constant methods (near and remote) are implemented in \thpkg\ as explained before.
 %
 % \begin{function}[EXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn}
 %  \begin{syntax}
@@ -336,8 +291,8 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \subsection{Constant creation}
-% Unlike normal variables, constants in \LaTeX3 are created in different ways depending on the specified type. So we dedicate a new section only to collect some of these fuinctions readapted for near constants (remote constants are simply near constants created on the generator proxy).
+% \subsection{Constant member creation}
+% Unlike normal variables, constant variables in \LaTeX3 are created in different ways depending on the specified type. So we dedicate a new section only to collect some of these fuinctions readapted for near constants (remote constants are simply near constants created on the generator proxy).
 %
 % \begin{function}{\object_newconst_tl:nnn, \object_newconst_tl:Vnn, \object_newconst_str:nnn, \object_newconst_str:Vnn, \object_newconst_int:nnn, \object_newconst_int:Vnn, \object_newconst_clist:nnn, \object_newconst_clist:Vnn, \object_newconst_dim:nnn, \object_newconst_dim:Vnn, \object_newconst_skip:nnn, \object_newconst_skip:Vnn, \object_newconst_fp:nnn, \object_newconst_fp:Vnn}
 %  \begin{syntax}
@@ -726,24 +681,26 @@
 
 \prg_new_conditional:Nnn \object_if_public:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_visvar:n { #1 } } \c_object_public_str
-  {
-    \prg_return_true:
-  }
-  {
-    \prg_return_false:
-  }
+  \str_if_eq:cNTF { \@@_object_visvar:n { #1 } }
+    \c_object_public_str
+    {
+      \prg_return_true:
+    }
+    {
+      \prg_return_false:
+    }
 }
 
 \prg_new_conditional:Nnn \object_if_private:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_visvar:n {#1} } \c_object_private_str
-  {
-    \prg_return_true:
-  }
-  {
-    \prg_return_false:
-  }
+  \str_if_eq:cNTF { \@@_object_visvar:n {#1} }
+    \c_object_private_str
+    {
+      \prg_return_true:
+    }
+    {
+      \prg_return_false:
+    }
 }
 
 \prg_generate_conditional_variant:Nnn \object_if_local:n { V }
@@ -1156,7 +1113,7 @@
 %\end{macro}
 %
 %
-% \begin{macro}{\object_ncmethod_adr:nnn, \object_rcmethod_adr:nnn, \object_method_adr:nnn}
+% \begin{macro}{\object_ncmethod_adr:nnn, \object_rcmethod_adr:nnn}
 % Fully expands to the method address.
 %    \begin{macrocode}
 
@@ -1176,20 +1133,13 @@
       { #2 }{ #3 }
   }
 
-\cs_new:Nn \object_method_adr:nnn
-  {
-    \@@_vis_fun:n { #1 }
-	#1 \tl_to_str:n { _ METHOD _ #2 : #3 }
-  }
-
 \cs_generate_variant:Nn \object_ncmethod_adr:nnn { Vnn , vnn }
 \cs_generate_variant:Nn \object_rcmethod_adr:nnn { Vnn }
-\cs_generate_variant:Nn \object_method_adr:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn, \object_member_if_exist:nnn}
+% \begin{macro}[pTF]{\object_ncmethod_if_exist:nnn, \object_rcmethod_if_exist:nnn}
 % Tests if the specified member constant exists.
 %    \begin{macrocode}
 
@@ -1221,31 +1171,15 @@
       }
   }
 
-\prg_new_conditional:Nnn \object_method_if_exist:nnn {p, T, F, TF }
-  {
-    \cs_if_exist:cTF
-      {
-        \object_methodr_adr:nnn { #1 }{ #2 }{ #3 }
-      }
-      {
-        \prg_return_true:
-      }
-      {
-        \prg_return_false:
-      }
-  }
-
 \prg_generate_conditional_variant:Nnn \object_ncmethod_if_exist:nnn
   { Vnn }{ p, T, F, TF }
 \prg_generate_conditional_variant:Nnn \object_rcmethod_if_exist:nnn
-  { Vnn }{ p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_method_if_exist:nnn
   { Vnn }{ p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_new_cmethod:nnnn, \object_new_method:nnn}
+% \begin{macro}{\object_new_cmethod:nnnn}
 % Creates a new method
 %    \begin{macrocode}
 
@@ -1257,45 +1191,13 @@
 	  }
 	  { #4 }
   }
-
-\cs_new_protected:Nn \object_new_method:nnn
-  {
-    \cs_new:cn
-	  {
-	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-	  {}
-  }
   
 \cs_generate_variant:Nn \object_new_cmethod:nnnn { Vnnn }
-\cs_generate_variant:Nn \object_new_method:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_method_set:nnnn}
-% Set the body od a method.
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \object_method_set:nnnn
-  {
-    \@@_force_scope:n { #1 }
-    \cs_if_exist_use:cT
-      {
-        cs _ \@@_scope_pfx:n { #1 } set :cn
-      }
-      {
-        { \object_method_adr:nnn { #1 }{ #2 }{ #3 } } { #4 }
-      }
-  }
-
-\cs_generate_variant:Nn \object_method_set:nnnn { Vnnn }
-
-%    \end{macrocode}
-%\end{macro}
-
-%
-% \begin{macro}{\object_ncmethod_call:nnn, \object_rcmethod_call:nnn, \object_method_call:nnn}
+% \begin{macro}{\object_ncmethod_call:nnn, \object_rcmethod_call:nnn}
 % Calls the specified method.
 %    \begin{macrocode}
 
@@ -1314,18 +1216,9 @@
 	    \object_rcmethod_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
   }
-
-\cs_new:Nn \object_method_call:nnn
-  {
-    \use:c
-	  {
-	    \object_method_adr:nnn { #1 }{ #2 }{ #3 }
-	  }
-  }
   
 \cs_generate_variant:Nn \object_ncmethod_call:nnn { Vnn }
 \cs_generate_variant:Nn \object_rcmethod_call:nnn { Vnn }
-\cs_generate_variant:Nn \object_method_call:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
@@ -1411,8 +1304,10 @@
       }
   }
   
- \prg_generate_conditional_variant:Nnn \object_test_proxy:nn { Vn }{p, T, F, TF}
- \prg_generate_conditional_variant:Nnn \object_test_proxy:nN { VN }{p, T, F, TF}
+\prg_generate_conditional_variant:Nnn \object_test_proxy:nn
+  { Vn }{p, T, F, TF}
+\prg_generate_conditional_variant:Nnn \object_test_proxy:nN
+  { VN }{p, T, F, TF}
 
 %    \end{macrocode}
 %\end{macro}
