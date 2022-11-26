@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/11/26 2.1 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/11/27 2.1.1 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/11/26}{ 2.1 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/11/27}{ 2.1.1 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -38,8 +38,8 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{2.1}
-% \NewDocumentCommand{\thdta}{}{2022/11/26}
+% \NewDocumentCommand{\thvsn}{}{2.1.1}
+% \NewDocumentCommand{\thdta}{}{2022/11/27}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
 % \title{The \pkg{lt3rawobjects} package}
@@ -942,7 +942,7 @@
 
 \cs_new_protected:Nn \object_member_set:nnn
   {
-    \object_member_set_eq:nnvn { #1 }{ #2 }
+    \object_member_set:nnvn { #1 }{ #2 }
       {
         \object_rcmember_adr:nnn { #1 }
           { #2 _ type }{ str }
