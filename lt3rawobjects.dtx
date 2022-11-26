@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/08/03 2.0 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/11/26 2.1 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/08/03}{ 2.0 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/11/26}{ 2.1 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -38,8 +38,8 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{2.0}
-% \NewDocumentCommand{\thdta}{}{2022/08/03}
+% \NewDocumentCommand{\thvsn}{}{2.1}
+% \NewDocumentCommand{\thdta}{}{2022/11/26}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
 % \title{The \pkg{lt3rawobjects} package}
@@ -209,7 +209,17 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_member_set_eq:nnnN, \object_member_set_eq:nnvN, \object_member_set_eq:VnnN, \object_member_set_eq:nnnc, \object_member_set_eq:Vnnc, \object_member_set_eq:nnN, \object_member_set_eq:VnN, \object_member_set_eq:nnc, \object_member_set_eq:Vnc}
+% \begin{function}{\object_member_set:nnnn, \object_member_set:nnvn, \object_member_set:Vnnn, \object_member_set:nnn, \object_member_set:Vnn}
+%  \begin{syntax}
+%   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \Arg{value}
+%   \cs{object_member_set:nnn} \Arg{address} \Arg{member name} \Arg{valuer}
+%  \end{syntax}
+%  Sets the value of specified member to \marg{value}. It calls implicitly \cs{\meta{member type}_(g)set:cn} then be sure to define it before calling this method.
+%
+% \fromV{2.1}
+% \end{function}
+%
+% \begin{function}{\object_member_set_eq:nnnN, \object_member_set_eq:nnvN, \object_member_set_eq:VnnN, \object_member_set_eq:nnnc, \object_member_set_eq:Vnnc, \object_member_set_eq:nnN, \object_member_set_eq:VnN, \object_member_set_eq:nnc, \object_member_set_eq:Vnc}
 %  \begin{syntax}
 %   \cs{object_member_set_eq:nnnN} \marg{address} \marg{member name} \marg{member type} \meta{variable}
 %   \cs{object_member_set_eq:nnN} \marg{address} \marg{member name} \meta{variable}
@@ -322,6 +332,15 @@
 %  Creates a |prop| constant which is set to contain all the specified key-value pairs.
 %
 % \fromV{1.1}
+% \end{function}
+%
+% \begin{function}{\object_newconst:nnnn}
+%  \begin{syntax}
+%   \cs{object_newconst:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
+%  \end{syntax}
+%  Expands to \cs{\meta{type}_const:cn} \marg{address} \marg{value}, use it if you need to create simple constants with custom types.
+%
+%  \fromV{2.1}
 % \end{function}
 %
 % \subsection{Proxy utilities and object creation}
@@ -903,8 +922,40 @@
 %    \end{macrocode}
 %\end{macro}
 %
+%\begin{macro}{\object_member_set:nnnn, \object_member_set_eq:nnn}
+% Set the value a member.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \object_member_set:nnnn
+  {
+    \@@_force_scope:n { #1 }
+    \cs_if_exist_use:cT
+      {
+        #3 _ \@@_scope_pfx:n { #1 } set:cn
+      }
+      {
+        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } } { #4 }
+      }
+  }
+
+\cs_generate_variant:Nn \object_member_set:nnnn { Vnnn, nnvn }
+
+\cs_new_protected:Nn \object_member_set:nnn
+  {
+    \object_member_set_eq:nnvn { #1 }{ #2 }
+      {
+        \object_rcmember_adr:nnn { #1 }
+          { #2 _ type }{ str }
+      } { #3 }
+  }
+
+\cs_generate_variant:Nn \object_member_set:nnn { Vnn }
+
+%    \end{macrocode}
+%\end{macro}
+%
 %\begin{macro}{\object_member_set_eq:nnnN, \object_member_set_eq:nnN}
-% Set the value of a variable to a member.
+% Make a member equal to another variable.
 %    \begin{macrocode}
 
 \cs_new_protected:Nn \object_member_set_eq:nnnN
@@ -1022,47 +1073,53 @@
 %    \end{macrocode}
 %\end{macro}
 %
+% \begin{macro}{\object_newconst:nnnn}
+% Creates a constant variable, use with caution
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \object_newconst:nnnn
+  {
+    \use:c { #3 _ const:cn }
+      {
+        \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      { #4 }
+  }
+
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\object_newconst_tl:nnn, \object_newconst_str:nnn, \object_newconst_int:nnn, \object_newconst_clist:nnn, \object_newconst_dim:nnn, \object_newconst_skip:nnn, \object_newconst_fp:nnn}
 % Create constants
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \@@_const_create:nnnn
-  {
-    \use:c { #1 _ const:cn }
-      {
-        \object_ncmember_adr:nnn { #2 }{ #3 }{ #1 }
-      }
-      { #4 }
-  }
-
 \cs_new_protected:Nn \object_newconst_tl:nnn
   {
-    \@@_const_create:nnnn { tl }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ tl }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_str:nnn
   {
-    \@@_const_create:nnnn { str }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ str }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_int:nnn
   {
-    \@@_const_create:nnnn { int }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ int }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_clist:nnn
   {
-    \@@_const_create:nnnn { clist }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ clist }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_dim:nnn
   {
-    \@@_const_create:nnnn { dim }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ dim }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_skip:nnn
   {
-    \@@_const_create:nnnn { skip }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ skip }{ #3 }
   }
 \cs_new_protected:Nn \object_newconst_fp:nnn
   {
-    \@@_const_create:nnnn { fp }{ #1 }{ #2 }{ #3 }
+    \object_newconst:nnnn { #1 }{ #2 }{ fp }{ #3 }
   }
 
 \cs_generate_variant:Nn \object_newconst_tl:nnn { Vnn }
