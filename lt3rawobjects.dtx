@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/11/27 2.1.1 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/11/27 2.2 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/11/27}{ 2.1.1 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/11/27}{ 2.2 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -38,7 +38,7 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{2.1.1}
+% \NewDocumentCommand{\thvsn}{}{2.2}
 % \NewDocumentCommand{\thdta}{}{2022/11/27}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
@@ -57,17 +57,13 @@
 %
 % This packages follows the \href{https://semver.org/}{SemVer} specification (\texttt{https://semver.org/}). In particular any major version update (for example from \texttt{1.2} to \texttt{2.0}) may introduce imcompatible changes and so it's not advisable to work with different packages that require different major versions of \thpkg. Instead changes introduced in minor and patch version updates are always backward compatible, and any withdrawn function is declared deprecated instead of being removed.
 %
-% \section{To do}
-% \begin{itemize}
-%   \item Uniform declarations for templated proxies;
-%   \item Constant objects.
-% \end{itemize}
-%
 % \section{Objects and proxies}
 % Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. In \thpkg\ objects are collections of
 % \begin{itemize}
 %   \item \LaTeX3 variables, called \emph{members};
-%   \item \LaTeX3 functions, called \emph{methods}.
+%   \item \LaTeX3 functions, called \emph{methods};
+%   \item generic control sequences, calles simply \emph{macros};
+%   \item other \emph{embedded objects}.
 % \end{itemize}
 % Both members and methods can be retrieved from a string representing the container object, that is the \emph{address} of the object and act like the address of a structure in C.
 %
@@ -89,11 +85,11 @@
 %
 % Members declared as mutables works as normal variables: you can modify their value and retrieve it at any time. Instead members and methods declared as near constant works as constants: when you create them you must specify their initial value (or function body for methods) and you won't be allowed to modify it later. Remote constants for an object are simply near constants defined in its generator: all near constants defined inside a proxy are automatically visible as remote constants to every object generated from that proxy. Usually functions involving near constants have |nc| inside their name, and |rc| if instead they use remote constants.
 %
-% Instead of creating mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
+% Instead of creating embedded objects or mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_object}, \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members and embedded objects. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
 %
 % Objects can be declared public, private and local, global. In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only assignation to mutable members is performed locally/globally since allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
 %
-% Address of members/methods can be obtained with functions in the form \cs{object_\meta{category}\meta{item}_adr} where \meta{item} is |member| or |method| and \meta{category} is empty for mutable members, |nc| for near constants and |rc| for remote constants. For example \cs{object_rcmethod_adr} retrieves the address of specified remote constant method.
+% Address of members/methods can be obtained with functions in the form \cs{object_\meta{item}\meta{category}_adr} where \meta{item} is |member|, |method|, |macro| or |embedded| and \meta{category} is |nc| for near constants, |rc| for remote ones and empty for others. For example \cs{object_rcmethod_adr} retrieves the address of specified remote constant method.
 %
 % \section{Library functions}
 % \label{sec:lib}
@@ -115,6 +111,15 @@
 %  Stores the adress of selected object inside the string variable \meta{str var}.
 %
 % \fromV{1.1}
+% \end{function}
+%
+% \begin{function}[EXP]{\object_embedded_adr:nn, \object_embedded_adr:Vn}
+%  \begin{syntax}
+%   \cs{object_embedded_adr:nn} \Arg{address} \Arg{id}
+%  \end{syntax}
+%  Compose the address of embedded object with name \meta{id} inside the parent object with address \meta{address}. Since an embedded object is also an object you can use this function for any function that accepts object addresses as an argument.
+%
+%  \fromV{2.2}
 % \end{function}
 %
 % \begin{function}[pTF]{\object_if_exist:n, \object_if_exist:V}
@@ -342,6 +347,28 @@
 %
 %  \fromV{2.1}
 % \end{function}
+%
+% \subsection{Macros}
+% 
+% \begin{function}[EXP]{\object_macro_adr:nn, \object_macro_adr:Vn}
+%  \begin{syntax}
+%   \cs{object_macro_adr:nn} \Arg{address} \Arg{macro name}
+%  \end{syntax}
+%  Address of specified macro.
+%
+%  \fromV{2.2}
+% \end{function}
+% 
+% \begin{function}[EXP]{\object_macro_use:nn, \object_macro_use:Vn}
+%  \begin{syntax}
+%   \cs{object_macro_use:nn} \Arg{address} \Arg{macro name}
+%  \end{syntax}
+%  Uses the specified macro. This function is expandable if and only if the specified macro is it.
+%
+%  \fromV{2.2}
+% \end{function}
+%
+% There isn't any standard function to create macros, and macro declarations can't be inserted in a |proxy| object. In fact a macro is just an unspecialized control sequence at the disposal of users that usually already know how to implement them. 
 %
 % \subsection{Proxy utilities and object creation}
 %
