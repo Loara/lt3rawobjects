@@ -91,6 +91,100 @@
 %
 % Address of members/methods can be obtained with functions in the form \cs{object_\meta{item}\meta{category}_adr} where \meta{item} is |member|, |method|, |macro| or |embedded| and \meta{category} is |nc| for near constants, |rc| for remote ones and empty for others. For example \cs{object_rcmethod_adr} retrieves the address of specified remote constant method.
 %
+% \section{Put objects inside objects}
+% Sometimes it's necessary to include other objects inside an object, and since objects are structured data types you can't put them directly inside a variable. However \thpkg\ provides some workarounds that allows you to include objects inside other objects, each with its own advantages and disadvantages.
+%
+% In the following examples we're in module |mymod| and we want to put inside object |A| another object created with proxy |prx|.  
+%
+% \subsection{Put a pointer variable} 
+% A simple solution is creating that object outside |A| with \cs{object_create}
+% \begin{verbatim}
+%  \object_create:nnnNN 
+%    { \object_address:nn{ mymod }{ prx } }{ mymod }{ B } ....
+% \end{verbatim} 
+% and then creating a pointer variable inside |A| (usually of type |tl| or |str|) holding the newly created address:
+% \begin{verbatim}
+%  \object_new_member:nnn
+%    {
+%      \object_address:nn{ mymod }{ A }
+%    }{ pointer }{ tl }
+%
+%  \tl_(g)set:cn
+%    {
+%      \object_new_member:nnn
+%        {
+%          \object_address:nn{ mymod }{ A }
+%        }{ pointer }{ tl }
+%    }
+%    {
+%      \object_address:nn{ mymod }{ B }
+%    }
+%
+% \end{verbatim}
+% you can the access the pointed object by calling \cs{object_member_use} on |pointer| member.
+%
+% \subsubsection*{Advantages}
+% \begin{itemize}
+%   \item Simple and no additional function needed to create and manage included objects;
+%   \item you can share the same object between different containers;
+%   \item included objects are objects too, you can use address stored in pointer member just like any object address.
+% \end{itemize}
+% 
+% \subsubsection*{Disadvantages}
+% \begin{itemize}
+%  \item You must manually create both the objects and link them;
+%  \item creating objects also creates additional hidden variables, taking so (little) additional space.
+% \end{itemize}
+%
+% \subsection{Clone the inner structure}
+% Instead of referring a complete object you can just clone the inner structure of |prx| and put inside |A|. For example if |prx| declares member |x| of type |str| and member |y| of type |int| then you can do
+% \begin{verbatim}
+%  \object_new_member:nnn
+%    {
+%      \object_address:nn{ mymod }{ A }
+%    }{ prx-x }{ str }
+%  \object_new_member:nnn
+%    {
+%      \object_address:nn{ mymod }{ A }
+%    }{ prx-y }{ int } 
+% \end{verbatim} 
+% and then use |prx-x|, |prx-y| as normal members of |A|.
+%
+% \subsubsection*{Advantages}
+% \begin{itemize}
+%  \item Simple and no additional function needed to create and manage included objects;
+%  \item you can put these specifications inside a proxy so that every object created with it will  have the required members/methods;
+%  \item no hidden variable created, lowest overhead among the proposed solutions.
+% \end{itemize}
+% 
+% \subsubsection*{Disadvantages}
+% \begin{itemize}
+%  \item Cloning the inner structure doesn't create any object, so you don't have any object address nor you can share the included ``object'' unless you share the container object too.
+% \end{itemize}
+%
+% \subsection{Embedded objects}
+% From \thpkg\ \texttt{2.2} you can put \emph{embedded objects} inside objects. Embedded objects are created with \cs{embedded_create} function 
+% \begin{verbatim}
+%  \embedded_create:nnn 
+%    { 
+%      \object_address:nn{  mymod }{ A } 
+%    }{ prx }{ B }
+% \end{verbatim}
+% and addresses of emmbedded objects can be retrieved with function \cs{object_embedded_adr}. You can also put the definition of embedded objects in a proxy by using \cs{proxy_push_embedded} just like \cs{proxy_push_member}.
+%
+% \subsubsection*{Advantages}
+% \begin{itemize}
+%   \item You can put a declaration inside a proxy so that embedded objects are automatically created during creation of parent object;
+%   \item included objects are objects too, you can use address stored in pointer member just like any object address.
+% \end{itemize}
+% 
+% \subsubsection*{Disadvantages}
+% \begin{itemize}
+%  \item Needs additional functions available for version \texttt{2.2} or later;
+%  \item embedded objects must have the same scope and visibility of parent one; 
+%  \item creating objects also creates additional hidden variables, taking so (little) additional space.
+% \end{itemize}
+%
 % \section{Library functions}
 % \label{sec:lib}
 %  \subsection{Base object functions}
@@ -217,7 +311,7 @@
 % \begin{function}{\object_member_set:nnnn, \object_member_set:nnvn, \object_member_set:Vnnn, \object_member_set:nnn, \object_member_set:Vnn}
 %  \begin{syntax}
 %   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \Arg{value}
-%   \cs{object_member_set:nnn} \Arg{address} \Arg{member name} \Arg{valuer}
+%   \cs{object_member_set:nnn} \Arg{address} \Arg{member name} \Arg{value}
 %  \end{syntax}
 %  Sets the value of specified member to \marg{value}. It calls implicitly \cs{\meta{member type}_(g)set:cn} then be sure to define it before calling this method.
 %
