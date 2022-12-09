@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/12/08 2.2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/12/09 2.2 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/12/08}{ 2.2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/12/09}{ 2.2 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -39,7 +39,7 @@
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
 % \NewDocumentCommand{\thvsn}{}{2.2}
-% \NewDocumentCommand{\thdta}{}{2022/12/08}
+% \NewDocumentCommand{\thdta}{}{2022/12/09}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
 % \title{The \pkg{lt3rawobjects} package}
@@ -53,7 +53,7 @@
 % \begin{documentation}
 %
 % \section{Introduction}
-% First to all notice that \thpkg\ means ``raw object(s)'', indeed \thpkg\ introduces a new mechanism to create objects like the well known C structures. The functions exported by this package are quite low level, and many important mechanisms like member protection and name resolution aren't already defined and should be introduced by intermediate packages.
+% First to all notice that \thpkg\ means ``raw object(s)'', indeed \thpkg\ introduces a new mechanism to create objects like the well known C structures. The functions exported by this package are quite low level, and many important mechanisms like member protection and name resolution aren't already defined and should be introduced by intermediate packages. Higher level libraries built on top of \thpkg\ could also implement an improved and simplified syntax since the main focus of \thpkg\ is versatility and expandability rather than common usage.
 %
 % This packages follows the \href{https://semver.org/}{SemVer} specification (\texttt{https://semver.org/}). In particular any major version update (for example from \texttt{1.2} to \texttt{2.0}) may introduce imcompatible changes and so it's not advisable to work with different packages that require different major versions of \thpkg. Instead changes introduced in minor and patch version updates are always backward compatible, and any withdrawn function is declared deprecated instead of being removed.
 %
@@ -85,7 +85,7 @@
 %
 % Members declared as mutables works as normal variables: you can modify their value and retrieve it at any time. Instead members and methods declared as near constant works as constants: when you create them you must specify their initial value (or function body for methods) and you won't be allowed to modify it later. Remote constants for an object are simply near constants defined in its generator: all near constants defined inside a proxy are automatically visible as remote constants to every object generated from that proxy. Usually functions involving near constants have |nc| inside their name, and |rc| if instead they use remote constants.
 %
-% Instead of creating embedded objects or mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_object}, \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members and embedded objects. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
+% Instead of creating embedded objects or mutable members in each of your objects you can push their specifications inside the generating proxy via \cs{proxy_push_embedded}, \cs{proxy_push_member}. In this way either object created from such proxy will have the specified members and embedded objects. Specify mutable members in this way allows you to omit that member type in some functions as \cs{object_member_adr} for example, their member type will be deduced automatically from its specification inside generating proxy.
 %
 % Objects can be declared public, private and local, global. In a public/private object every nonconstant member and method is declared public/private, but inside local/global object only assignation to mutable members is performed locally/globally since allocation is always performed globally via \cs{\meta{type}_new:Nn} functions (nevertheless members will be accordingly declared |g_| or |l_|). This is intentional in order to follow the \LaTeX3 guidelines about variables managment, for additional motivations you can see \href{https://github.com/latex3/latex3/issues/410}{this thread} in the \LaTeX3 repository.
 %
@@ -656,6 +656,91 @@
 %   }
 %   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
 % \object_member_use:Vn \l_myobj_str { myvar }
+% \ExplSyntaxOff
+%
+% \subsection*{Example 2}
+% In this example we create a proxy object with an embedded object inside.
+%
+% Internal proxy
+% \begin{verbatim}
+%  \proxy_create:nnN{ mymod }{ INT } \c_object_public_str
+%  \proxy_push_member:nnn
+%    {
+%      \object_address:nn{ mymod }{ INT }
+%    }{ var }{ tl }
+% \end{verbatim}
+%
+% Container proxy
+% \begin{verbatim}
+%  \proxy_create:nnN{ mymod }{ EXT } \c_object_public_str
+%  \proxy_push_embedded:nnn
+%    {
+%      \object_address:nn{ mymod }{ EXT }
+%    }
+%    { emb }
+%    {
+%      \object_address:nn{ mymod }{ INT }
+%    }
+% \end{verbatim}
+%
+% Now we create a new object from proxy |EXT|. It'll contain an embedded object created with |INT| proxy:
+% \begin{verbatim}
+%  \str_new:N \g_EXTobj_str
+%  \int_new:N \g_intcount_int
+%  \object_gallocate_gincr:NNnnNN
+%    \g_EXTobj_str \g_intcount_int
+%    {
+%      \object_address:nn{ mymod }{ EXT }
+%    }
+%    { mymod }
+%    \c_object_local_str \c_object_public_str
+% \end{verbatim}
+% and use the embedded object in the following way:
+% \begin{verbatim}
+%  \object_member_set:nnn
+%    {
+%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%    }{ var }{ Hi }
+%  \object_member_use:nn
+%    {
+%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%    }{ var }
+% \end{verbatim}
+% Output: \ExplSyntaxOn
+%  \proxy_create:nnN{ mymod }{ INT } \c_object_public_str
+%  \proxy_push_member:nnn
+%    {
+%      \object_address:nn{ mymod }{ INT }
+%    }{ var }{ tl }
+%
+%  \proxy_create:nnN{ mymod }{ EXT } \c_object_public_str
+%  \proxy_push_embedded:nnn
+%    {
+%      \object_address:nn{ mymod }{ EXT }
+%    }
+%    { emb }
+%    {
+%      \object_address:nn{ mymod }{ INT }
+%    }
+%
+%  \str_new:N \g_EXTobj_str
+%  \int_new:N \g_intcount_int
+%  \object_gallocate_gincr:NNnnNN
+%    \g_EXTobj_str \g_intcount_int
+%    {
+%      \object_address:nn{ mymod }{ EXT }
+%    }
+%    { mymod }
+%    \c_object_local_str \c_object_public_str
+%
+%  \object_member_set:nnn
+%    {
+%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%    }{ var }{ Hi }
+%  \object_member_use:nn
+%    {
+%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%    }{ var }
 % \ExplSyntaxOff
 %
 % \section{Templated proxies}
