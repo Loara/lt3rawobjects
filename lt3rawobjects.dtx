@@ -845,28 +845,30 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%    \begin{macrocode}
-\cs_new:Nn \@@_object_modvar:n{
-  c __ #1 _ MODULE _ str
-}
-
-\cs_new:Nn \@@_object_pxyvar:n{
-  c __ #1 _ PROXY _ str
-}
-
-\cs_new:Nn \@@_object_scovar:n{
-  c __ #1 _ SCOPE _ str
-}
-
-\cs_new:Nn \@@_object_visvar:n{
-  c __ #1 _ VISIB _ str
-}
-
-\cs_generate_variant:Nn \@@_object_modvar:n { V }
-\cs_generate_variant:Nn \@@_object_pxyvar:n { V }
-\cs_generate_variant:Nn \@@_object_scovar:n { V }
-\cs_generate_variant:Nn \@@_object_visvar:n { V }
-%    \end{macrocode}
+%    \begin{verbatim}
+%\cs_new:Nn \@@_object_modvar:n{
+%  c __ #1 _ MODULE _ str
+%}
+%
+%\cs_new:Nn \@@_object_pxyvar:n{
+%  c __ #1 _ PROXY _ str
+%}
+%
+%\cs_new:Nn \@@_object_scovar:n{
+%  c __ #1 _ SCOPE _ str
+%}
+%
+%\cs_new:Nn \@@_object_visvar:n{
+%  c __ #1 _ VISIB _ str
+%}
+%
+%\cs_generate_variant:Nn \@@_object_modvar:n { V }
+%\cs_generate_variant:Nn \@@_object_pxyvar:n { V }
+%\cs_generate_variant:Nn \@@_object_scovar:n { V }
+%\cs_generate_variant:Nn \@@_object_visvar:n { V }
+%
+% inner object name: /I/
+%    \end{verbatim}
 %
 %\begin{macro}[pTF]{\object_if_exist:n}
 %Tests if object exists.
