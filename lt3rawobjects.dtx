@@ -268,6 +268,15 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}[EXP]{\object_member_adr:nnnNN, \object_member_adr:VnnNN, \object_member_adr:nnncc}
+%  \begin{syntax}
+%   \cs{object_member_adr:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  Same as \cs{object_member_adr} but scope and visibility are specified as arguments instead of reading hidden variables. This is useful for objects created without an internal auxiliary structure.
+%
+% \fromV{2.3}
+% \end{function}
+%
 % \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn, \object_member_if_exist:nn, \object_member_if_exist:Vn}
 %  \begin{syntax}
 %   \cs{object_member_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
@@ -306,6 +315,15 @@
 %  Uses the specified member variable.
 %
 % \fromV{1.0}
+% \end{function}
+%
+% \begin{function}[EXP]{\object_member_use:nnnNN, \object_member_use:VnnNN, \object_member_use:nnncc}
+%  \begin{syntax}
+%   \cs{object_member_use:nnnNN} \marg{address} \marg{member name} \marg{member type} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  Same as \cs{object_member_use:nnn} but with the specified scope and visibility.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\object_member_set:nnnn, \object_member_set:nnvn, \object_member_set:Vnnn, \object_member_set:nnn, \object_member_set:Vnn}
@@ -500,8 +518,8 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{variable}{\c_proxy_address_str}
-%  The address of the |proxy| object in the |rawobjects| module.
+% \begin{variable}{\c_proxymin_address_str}
+%  The address of the |proxymin| object in the |rawobjects| module.
 %
 % \fromV{1.0}
 % \end{variable}
@@ -798,10 +816,10 @@
 %
 %\begin{variable}{\c_object_local_str, \c_object_global_str, \c_object_public_str, \c_object_private_str}
 %    \begin{macrocode}
-\str_const:Nn \c_object_local_str {loc}
-\str_const:Nn \c_object_global_str {glo}
-\str_const:Nn \c_object_public_str {pub}
-\str_const:Nn \c_object_private_str {pri}
+\str_const:Nn \c_object_local_str {l}
+\str_const:Nn \c_object_global_str {g}
+\str_const:Nn \c_object_public_str {p}
+\str_const:Nn \c_object_private_str {r}
 
 \str_const:Nn \c_@@_const_str {con}
 %    \end{macrocode}
@@ -845,30 +863,19 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%    \begin{verbatim}
-%\cs_new:Nn \@@_object_modvar:n{
-%  c __ #1 _ MODULE _ str
-%}
-%
-%\cs_new:Nn \@@_object_pxyvar:n{
-%  c __ #1 _ PROXY _ str
-%}
-%
-%\cs_new:Nn \@@_object_scovar:n{
-%  c __ #1 _ SCOPE _ str
-%}
-%
-%\cs_new:Nn \@@_object_visvar:n{
-%  c __ #1 _ VISIB _ str
-%}
-%
-%\cs_generate_variant:Nn \@@_object_modvar:n { V }
-%\cs_generate_variant:Nn \@@_object_pxyvar:n { V }
-%\cs_generate_variant:Nn \@@_object_scovar:n { V }
-%\cs_generate_variant:Nn \@@_object_visvar:n { V }
-%
-% inner object name: /I/
-%    \end{verbatim}
+% \begin{macro}{\object_ncmember_adr:nnn
+% Get address of near constant
+%    \begin{macrocode}
+
+\cs_new:Nn \object_ncmember_adr:nnn
+  {
+    \tl_to_str:n{ c _ } #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
+  }
+
+\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
+
+%    \end{macrocode}
+% \end{macro}
 %
 %\begin{macro}[pTF]{\object_if_exist:n}
 %Tests if object exists.
@@ -878,7 +885,7 @@
   {
     \cs_if_exist:cTF
       {
-        \@@_object_modvar:n { #1 }
+        \@@_object_scovar:n { #1 }
       }
       {
         \prg_return_true:
@@ -898,10 +905,18 @@
 %Retrieve the name, module and generating proxy of an object
 %    \begin{macrocode}
 \cs_new:Nn \object_get_module:n {
-  \str_use:c { \@@_object_modvar:n { #1 } }
+  \object_ncmember_use:nnn
+  {
+    \object_embedded_adr:nn{ #1 }{ /_I_/ }
+  }
+  { M }{ str }
 }
 \cs_new:Nn \object_get_proxy_adr:n {
-  \str_use:c { \@@_object_pxyvar:n { #1 } }
+  \object_ncmember_use:nnn
+  {
+    \object_embedded_adr:nn{ #1 }{ /_I_/ }
+  }
+  { P }{ str }
 }
 
 \cs_generate_variant:Nn \object_get_module:n { V }
@@ -914,7 +929,14 @@
 %    \begin{macrocode}
 \prg_new_conditional:Nnn \object_if_local:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_scovar:n {#1} }
+  \str_if_eq:cNTF
+    {
+      \object_ncmember_adr:nnn
+        {
+          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+        }
+        { S }{ str }
+    }
     \c_object_local_str
     {
       \prg_return_true:
@@ -926,7 +948,14 @@
 
 \prg_new_conditional:Nnn \object_if_global:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_scovar:n {#1} }
+  \str_if_eq:cNTF
+    {
+      \object_ncmember_adr:nnn
+        {
+          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+        }
+        { S }{ str }
+    }
     \c_object_global_str
     {
       \prg_return_true:
@@ -938,7 +967,14 @@
 
 \prg_new_conditional:Nnn \object_if_public:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_visvar:n { #1 } }
+  \str_if_eq:cNTF
+    {
+      \object_ncmember_adr:nnn
+        {
+          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+        }
+        { V }{ str }
+    }
     \c_object_public_str
     {
       \prg_return_true:
@@ -950,7 +986,14 @@
 
 \prg_new_conditional:Nnn \object_if_private:n {p, T, F, TF}
 {
-  \str_if_eq:cNTF { \@@_object_visvar:n {#1} }
+  \str_if_eq:cNTF
+    {
+      \object_ncmember_adr:nnn
+        {
+          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+        }
+        { V }{ str }
+    }
     \c_object_private_str
     {
       \prg_return_true:
@@ -995,19 +1038,18 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_member_adr:nnn, \object_member_adr:nn}
-%Get the address of a member variable
+%\begin{macro}{\object_member_adr:nnnNN}
+% Macro address without object inference
 %    \begin{macrocode}
 
-\cs_new:Nn \@@_scope:n
+\cs_new:Nn \@@_scope:N
   {
-    \object_if_local:nTF { #1 }
+    \str_if_eq:NNTF #1 \c_object_local_str
       {
         l
       }
       {
-        \str_if_eq:cNTF { \@@_object_scovar:n { #1 } }
-          \c_@@_const_str
+        \str_if_eq:NNTF #1 \c_@@_const_str
           {
             c
           }
@@ -1017,15 +1059,15 @@
       }
   }
 
-\cs_new:Nn \@@_scope_pfx:n
+\cs_new:Nn \@@_scope_pfx:N
   {
-    \object_if_local:nF { #1 }
+    \str_if_eq:NNF #1 \c_object_local_str
       { g }
   }
 
-\cs_new:Nn \@@_vis_var:n
+\cs_new:Nn \@@_vis_var:N
   {
-    \object_if_private:nTF { #1 }
+    \str_if_eq:NNTF #1 \c_object_private_str
       {
         __
       }
@@ -1034,19 +1076,47 @@
       }
   }
 
-\cs_new:Nn \@@_vis_fun:n
+\cs_new:Nn \@@_vis_fun:N
   {
-    \object_if_private:nT { #1 }
+    \str_if_eq:NNT #1 \c_object_private_str
       {
         __
       }
   }
 
+\cs_new:Nn \object_member_adr:nnnNN
+  {
+    \@@_scope:N #4
+    \@@_vis_var:N #5
+    #1 \tl_to_str:n { _ MEMBER _ #2 _ #3 }
+  }
+  
+\cs_generate_variant:Nn \object_member_adr:nnnNN { VnnNN, nnncc }
+
+%    \end{macrocode}
+% \end{macro}
+%
+%\begin{macro}{\object_member_adr:nnn, \object_member_adr:nn}
+%Get the address of a member variable
+%    \begin{macrocode}
+
 \cs_new:Nn \object_member_adr:nnn
   {
-    \@@_scope:n { #1 }
-    \@@_vis_var:n { #1 }
-    #1 \tl_to_str:n { _ MEMBER _ #2 _ #3 }
+    \object_member_adr:nnncc { #1 }{ #2 }{ #3 }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { S }{ str }
+      }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { V }{ str }
+      }
   }
 
 \cs_generate_variant:Nn \object_member_adr:nnn { Vnn, vnn, nnv }
@@ -1157,9 +1227,17 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_use:nnn, \object_member_use:nn}
+%\begin{macro}{\object_member_use:nnnNN, \object_member_use:nnn, \object_member_use:nn}
 %Uses a member variable
 %    \begin{macrocode}
+
+\cs_new:Nn \object_member_use:nnnNN
+  {
+    \cs_if_exist_use:cT { #3 _ use:c }
+      {
+        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
+      }
+  }
 
 \cs_new:Nn \object_member_use:nnn
   {
@@ -1178,26 +1256,49 @@
       }
   }
 
+\cs_generate_variant:Nn \object_member_use:nnNN { VnnNN, nnncc }
 \cs_generate_variant:Nn \object_member_use:nnn { Vnn, vnn, nnv }
 \cs_generate_variant:Nn \object_member_use:nn { Vn }
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_set:nnnn, \object_member_set_eq:nnn}
+%\begin{macro}{\object_member_set:nnnNNn, \object_member_set:nnnn, \object_member_set_eq:nnn}
 % Set the value a member.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_member_set:nnnn
+\cs_new_protected:Nn \object_member_set:nnnNNn
   {
-    \@@_force_scope:n { #1 }
     \cs_if_exist_use:cT
       {
-        #3 _ \@@_scope_pfx:n { #1 } set:cn
+        #3 _ \@@_scope_pfx:N #4 set:cn
       }
       {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } } { #4 }
+        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
+        { #6 }
       }
+  }
+  
+\cs_generate_variant:Nn \object_member_set:nnnNNn { VnnNNn, nnnccn }
+
+\cs_new_protected:Nn \object_member_set:nnnn
+  {
+    \object_member_set:nnnccn{ #1 }{ #2 }{ #3 }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { S }{ str }
+      }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { V }{ str }
+      }
+      { #4 }
   }
 
 \cs_generate_variant:Nn \object_member_set:nnnn { Vnnn, nnvn }
@@ -1248,16 +1349,9 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_ncmember_adr:nnn, \object_rcmember_adr:nnn}
-% Get the address of a near/remote constant.
+%\begin{macro}{\object_rcmember_adr:nnn}
+% Get the address of a remote constant.
 %    \begin{macrocode}
-
-\cs_new:Nn \object_ncmember_adr:nnn
-  {
-    c _ #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
-  }
-
-\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
 
 \cs_new:Nn \object_rcmember_adr:nnn
   {
@@ -1544,11 +1638,11 @@
 %
 %
 %
-%\begin{variable}{\c_proxy_address_str}
-%The address of the \verb|proxy| object.
+%\begin{variable}{\c_proxymin_address_str}
+%The address of the \verb|proxymin| object.
 %    \begin{macrocode}
-\str_const:Nx \c_proxy_address_str
-  { \object_address:nn { rawobjects }{ proxy } }
+\str_const:Nx \c_proxymin_address_str
+  { \object_address:nn { rawobjects }{ proxymin } }
 %    \end{macrocode}
 %\end{variable}
 %
@@ -1556,27 +1650,27 @@
 % Source of \verb|proxy| object
 %    \begin{macrocode}
 
-\str_const:cn { \@@_object_modvar:V \c_proxy_address_str }
+\str_const:cn { \@@_object_modvar:V \c_proxymin_address_str }
   { rawobjects }
-\str_const:cV { \@@_object_pxyvar:V \c_proxy_address_str }
+\str_const:cV { \@@_object_pxyvar:V \c_proxymin_address_str }
   \c_proxy_address_str
-\str_const:cV { \@@_object_scovar:V \c_proxy_address_str }
+\str_const:cV { \@@_object_scovar:V \c_proxymin_address_str }
   \c_@@_const_str
-\str_const:cV { \@@_object_visvar:V \c_proxy_address_str }
+\str_const:cV { \@@_object_visvar:V \c_proxymin_address_str }
   \c_object_public_str
 
 \seq_const_from_clist:cn
   {
-    \object_member_adr:Vnn \c_proxy_address_str { varlist }{ seq }
+    \object_member_adr:Vnn \c_proxymin_address_str { varlist }{ seq }
   }
   { varlist, objlist }
 
-\object_newconst_str:Vnn \c_proxy_address_str { varlist_type }{ seq }
-\object_newconst_str:Vnn \c_proxy_address_str { objlist_type }{ seq }
+\object_newconst_str:Vnn \c_proxymin_address_str { varlist_type }{ seq }
+\object_newconst_str:Vnn \c_proxymin_address_str { objlist_type }{ seq }
 
 \seq_const_from_clist:cn
   {
-    \object_member_adr:Vnn \c_proxy_address_str { objlist }{ seq }  
+    \object_member_adr:Vnn \c_proxymin_address_str { objlist }{ seq }  
   }
   {}
 
