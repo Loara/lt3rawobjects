@@ -307,6 +307,15 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}{\object_new_member:nnnNN}
+%  \begin{syntax}
+%   \cs{object_new_member:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  As \cs{object_new_member:nnn} but with specified scope and visibility.
+%
+% \fromV{2.3}
+% \end{function}
+%
 % \begin{function}[EXP]{\object_member_use:nnn, \object_member_use:Vnn, \object_member_use:nnv, \object_member_use:nn, \object_member_use:Vn}
 %  \begin{syntax}
 %   \cs{object_member_use:nnn} \marg{address} \marg{member name} \marg{member type}
@@ -600,6 +609,21 @@
 % \fromV{2.2}
 % \end{function}
 %
+% \begin{function}{\proxy_add_initializer:nN, \proxy_add_initializer:VN}
+%  \begin{syntax}
+%   \cs{proxy_add_initializer:nN} \Arg{proxy address} \meta{initializer}
+%  \end{syntax}
+%  Pushes a new initializer that will be executed on each created objects. An initializer is a function that should accept five arguments in this order:
+%  \begin{itemize}
+%   \item the address of created objest as an |n| argument;
+%   \item the address of used proxy as an |n|  argument;
+%   \item the module in which object is created as an |n|  argument;
+%   \item the scope as an |N| argument;
+%   \item the visibility as an |N| argument.
+%  \end{itemize}
+%
+%  Initializer will be executed in the same order they're added.
+%
 % \begin{function}{\object_assign:nn, \object_assign:Vn, \object_assign:nV, \object_assign:VV}
 %  \begin{syntax}
 %   \cs{object_assign:nn} \marg{to address} \marg{from address}
@@ -885,7 +909,11 @@
   {
     \cs_if_exist:cTF
       {
-        \@@_object_scovar:n { #1 }
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { S }{ str }
       }
       {
         \prg_return_true:
@@ -1209,9 +1237,18 @@
 %    \end{macrocode}
 % \end{macro}
 
-%\begin{macro}{\object_new_member:nnn}
+%\begin{macro}{\object_new_member:nnnNN, \object_new_member:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
+
+\cs_new_protected:Nn \object_new_member:nnnNN
+  {
+    \@@_force_scope:n { #1 }
+    \cs_if_exist_use:cT { #3 _ new:c }
+      {
+        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } #4 #5 }
+      }
+  }
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
@@ -1647,17 +1684,34 @@
 %\end{variable}
 %
 %
-% Source of \verb|proxy| object
+% Source of \verb|proxymin| object
 %    \begin{macrocode}
 
-\str_const:cn { \@@_object_modvar:V \c_proxymin_address_str }
-  { rawobjects }
-\str_const:cV { \@@_object_pxyvar:V \c_proxymin_address_str }
-  \c_proxy_address_str
-\str_const:cV { \@@_object_scovar:V \c_proxymin_address_str }
-  \c_@@_const_str
-\str_const:cV { \@@_object_visvar:V \c_proxymin_address_str }
-  \c_object_public_str
+\object_newconst_str:nnn
+  {
+    \object_embedded_adr:Vn \c_proxymin_address_str
+      { /_I_/ }
+  }{ M }{ rawobjects }
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxymin_address_str
+      { /_I_/ }
+  }{ P } \c_proxymin_address_str
+  
+\cs_generate_variant:Nn \object_newconst_str:nnn { nnV }
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxymin_address_str
+      { /_I_/ }
+  }{ S } \c_@@_const_str
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxymin_address_str
+      { /_I_/ }
+  }{ V } \c_object_public_str
 
 \seq_const_from_clist:cn
   {
@@ -1667,10 +1721,108 @@
 
 \object_newconst_str:Vnn \c_proxymin_address_str { varlist_type }{ seq }
 \object_newconst_str:Vnn \c_proxymin_address_str { objlist_type }{ seq }
+\object_newconst_tl:Vnn \c_proxymin_address_str { proxy_init }{}
 
 \seq_const_from_clist:cn
   {
     \object_member_adr:Vnn \c_proxymin_address_str { objlist }{ seq }  
+  }
+  {}
+
+%    \end{macrocode}
+%
+%\begin{macro}{\proxy_init_SV:nnnNN}
+% Initialize scope and visibility variables
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \proxy_init_SV:nnnNN
+  {
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { S } #4
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { V } #5
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
+%\begin{macro}{\proxy_init_MP:nnnNN}
+% Initialize module name and proxy name variables
+%    \begin{macrocode}
+
+\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
+
+\cs_new_protected:Nn \proxy_init_MP:nnnNN
+  {
+    \object_newconst_str:nnn
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { M }{ #3 }
+    \object_newconst_str:nnx
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { P }{ #2 }
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{variable}{\c_proxylgt_address_str}
+% The address of the \verb|proxylgt| object.
+%    \begin{macrocode}
+\str_const:Nx \c_proxylgt_address_str
+  { \object_address:nn { rawobjects }{ proxylgt } }
+%    \end{macrocode}
+% \end{variable}
+%
+% Source of \verb|proxylgt| object
+%    \begin{macrocode}
+
+\object_newconst_str:nnn
+  {
+    \object_embedded_adr:Vn \c_proxylgt_address_str
+      { /_I_/ }
+  }{ M }{ rawobjects }
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxylgt_address_str
+      { /_I_/ }
+  }{ P } \c_proxymin_address_str
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxylgt_address_str
+      { /_I_/ }
+  }{ S } \c_@@_const_str
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxylgt_address_str
+      { /_I_/ }
+  }{ V } \c_object_public_str
+
+\seq_const_from_clist:cn
+  {
+    \object_member_adr:Vnn \c_proxylgt_address_str { varlist }{ seq }
+  }
+  { varlist, objlist }
+
+\object_newconst_str:Vnn \c_proxylgt_address_str { varlist_type }{ seq }
+\object_newconst_str:Vnn \c_proxylgt_address_str { objlist_type }{ seq }
+\object_newconst_tl:Vnn \c_proxylgt_address_str { proxy_init }{ \proxy_init_SV:nnnNN }
+
+\seq_const_from_clist:cn
+  {
+    \object_member_adr:Vnn \c_proxylgt_address_str { objlist }{ seq }  
   }
   {}
 
