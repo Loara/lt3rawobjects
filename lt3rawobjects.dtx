@@ -307,7 +307,7 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\object_new_member:nnnNN}
+% \begin{function}{\object_new_member:nnnNN, \object_new_member:VnnNN}
 %  \begin{syntax}
 %   \cs{object_new_member:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
 %  \end{syntax}
@@ -842,10 +842,34 @@
 %    \begin{macrocode}
 \str_const:Nn \c_object_local_str {l}
 \str_const:Nn \c_object_global_str {g}
-\str_const:Nn \c_object_public_str {p}
-\str_const:Nn \c_object_private_str {r}
+\str_const:Nn \c_object_public_str {_}
+\str_const:Nn \c_object_private_str {__}
 
-\str_const:Nn \c_@@_const_str {con}
+
+\cs_new:Nn \@@_scope:N
+  {
+    \str_use:N #1
+  }
+
+\cs_new:Nn \@@_scope_pfx:N
+  {
+    \str_if_eq:NNF #1 \c_object_local_str
+      { g }
+  }
+
+\cs_new:Nn \@@_vis_var:N
+  {
+    \str_use:N #1
+  }
+
+\cs_new:Nn \@@_vis_fun:N
+  {
+    \str_if_eq:NNT #1 \c_object_private_str
+      {
+        __
+      }
+  }
+
 %    \end{macrocode}
 %\end{variable}
 %
@@ -886,20 +910,6 @@
 
 %    \end{macrocode}
 %\end{macro}
-%
-% \begin{macro}{\object_ncmember_adr:nnn
-% Get address of near constant
-%    \begin{macrocode}
-
-\cs_new:Nn \object_ncmember_adr:nnn
-  {
-    \tl_to_str:n{ c _ } #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
-  }
-
-\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
-
-%    \end{macrocode}
-% \end{macro}
 %
 %\begin{macro}[pTF]{\object_if_exist:n}
 %Tests if object exists.
@@ -1070,48 +1080,6 @@
 % Macro address without object inference
 %    \begin{macrocode}
 
-\cs_new:Nn \@@_scope:N
-  {
-    \str_if_eq:NNTF #1 \c_object_local_str
-      {
-        l
-      }
-      {
-        \str_if_eq:NNTF #1 \c_@@_const_str
-          {
-            c
-          }
-          {
-            g
-          }
-      }
-  }
-
-\cs_new:Nn \@@_scope_pfx:N
-  {
-    \str_if_eq:NNF #1 \c_object_local_str
-      { g }
-  }
-
-\cs_new:Nn \@@_vis_var:N
-  {
-    \str_if_eq:NNTF #1 \c_object_private_str
-      {
-        __
-      }
-      {
-        _
-      }
-  }
-
-\cs_new:Nn \@@_vis_fun:N
-  {
-    \str_if_eq:NNT #1 \c_object_private_str
-      {
-        __
-      }
-  }
-
 \cs_new:Nn \object_member_adr:nnnNN
   {
     \@@_scope:N #4
@@ -1249,6 +1217,8 @@
         { \object_member_adr:nnn { #1 }{ #2 }{ #3 } #4 #5 }
       }
   }
+  
+\cs_generate_variant:Nn \object_new_member:nnnNN { VnnNN }
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
@@ -1385,6 +1355,20 @@
 
 %    \end{macrocode}
 %\end{macro}
+%
+% \begin{macro}{\object_ncmember_adr:nnn}
+% Get address of near constant
+%    \begin{macrocode}
+
+\cs_new:Nn \object_ncmember_adr:nnn
+  {
+    \tl_to_str:n{ c _ } #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
+  }
+
+\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
+
+%    \end{macrocode}
+% \end{macro}
 %
 %\begin{macro}{\object_rcmember_adr:nnn}
 % Get the address of a remote constant.
@@ -1673,64 +1657,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%
-%
-%\begin{variable}{\c_proxymin_address_str}
-%The address of the \verb|proxymin| object.
-%    \begin{macrocode}
-\str_const:Nx \c_proxymin_address_str
-  { \object_address:nn { rawobjects }{ proxymin } }
-%    \end{macrocode}
-%\end{variable}
-%
-%
-% Source of \verb|proxymin| object
-%    \begin{macrocode}
-
-\object_newconst_str:nnn
-  {
-    \object_embedded_adr:Vn \c_proxymin_address_str
-      { /_I_/ }
-  }{ M }{ rawobjects }
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxymin_address_str
-      { /_I_/ }
-  }{ P } \c_proxymin_address_str
-  
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnV }
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxymin_address_str
-      { /_I_/ }
-  }{ S } \c_@@_const_str
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxymin_address_str
-      { /_I_/ }
-  }{ V } \c_object_public_str
-
-\seq_const_from_clist:cn
-  {
-    \object_member_adr:Vnn \c_proxymin_address_str { varlist }{ seq }
-  }
-  { varlist, objlist }
-
-\object_newconst_str:Vnn \c_proxymin_address_str { varlist_type }{ seq }
-\object_newconst_str:Vnn \c_proxymin_address_str { objlist_type }{ seq }
-\object_newconst_tl:Vnn \c_proxymin_address_str { proxy_init }{}
-
-\seq_const_from_clist:cn
-  {
-    \object_member_adr:Vnn \c_proxymin_address_str { objlist }{ seq }  
-  }
-  {}
-
-%    \end{macrocode}
-%
 %\begin{macro}{\proxy_init_SV:nnnNN}
 % Initialize scope and visibility variables
 %    \begin{macrocode}
@@ -1748,6 +1674,8 @@
       }
       { V } #5
   }
+  
+\cs_generate_variant:Nn \proxy_init_SV:nnnNN { VnnNN, VVnNN } 
 
 %    \end{macrocode}
 % \end{macro}
@@ -1771,9 +1699,51 @@
       }
       { P }{ #2 }
   }
+  
+\cs_generate_variant:Nn \proxy_init_MP:nnnNN { VnnNN, VVnNN }
 
 %    \end{macrocode}
 % \end{macro}
+%
+%\begin{variable}{\c_proxymin_address_str}
+% Variable containing the address of the \verb|proxymin| object.
+%    \begin{macrocode}
+\str_const:Nx \c_proxymin_address_str
+  { \object_address:nn { rawobjects }{ proxymin } }
+%    \end{macrocode}
+%\end{variable}
+%
+%
+% Source of \verb|proxymin| object
+%    \begin{macrocode}
+
+\proxy_init_SV:VVnNN \c_proxymin_address_str \c_proxymin_address_str
+  { rawobjects } \c_object_global_str \c_object_public_str
+  
+\proxy_init_MP:VVnNN \c_proxymin_address_str \c_proxymin_address_str
+  { rawobjects } \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxymin_address_str { init }{ tl }
+  \c_object_global_str \c_object_public_str
+  
+\object_new_member:VnnNN \c_proxymin_address_str { varlist }{ seq }
+  \c_object_global_str \c_object_public_str
+  
+\object_new_member:VnnNN \c_proxymin_address_str { objlist }{ seq }
+  \c_object_global_str \c_object_public_str
+  
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { init }{ tl }
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { varlist }{ seq }
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { objlist }{ seq }
+\proxy_add_initializer:VN \c_proxymin_address_str
+  \proxy_init_SV:nnnNN
+\proxy_add_initializer:VN \c_proxymin_address_str
+  \proxy_init_MP:nnnNN
+  
+%    \end{macrocode}
 %
 % \begin{variable}{\c_proxylgt_address_str}
 % The address of the \verb|proxylgt| object.
@@ -1785,47 +1755,6 @@
 %
 % Source of \verb|proxylgt| object
 %    \begin{macrocode}
-
-\object_newconst_str:nnn
-  {
-    \object_embedded_adr:Vn \c_proxylgt_address_str
-      { /_I_/ }
-  }{ M }{ rawobjects }
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxylgt_address_str
-      { /_I_/ }
-  }{ P } \c_proxymin_address_str
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxylgt_address_str
-      { /_I_/ }
-  }{ S } \c_@@_const_str
-
-\object_newconst_str:nnV
-  {
-    \object_embedded_adr:Vn \c_proxylgt_address_str
-      { /_I_/ }
-  }{ V } \c_object_public_str
-
-\seq_const_from_clist:cn
-  {
-    \object_member_adr:Vnn \c_proxylgt_address_str { varlist }{ seq }
-  }
-  { varlist, objlist }
-
-\object_newconst_str:Vnn \c_proxylgt_address_str { varlist_type }{ seq }
-\object_newconst_str:Vnn \c_proxylgt_address_str { objlist_type }{ seq }
-\object_newconst_tl:Vnn \c_proxylgt_address_str { proxy_init }{ \proxy_init_SV:nnnNN }
-
-\seq_const_from_clist:cn
-  {
-    \object_member_adr:Vnn \c_proxylgt_address_str { objlist }{ seq }  
-  }
-  {}
-
 %    \end{macrocode}
 %
 %\begin{macro}[pTF]{\object_if_proxy:n}
