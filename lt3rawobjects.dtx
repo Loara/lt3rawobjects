@@ -544,11 +544,20 @@
 %
 % \begin{function}{\embedded_create:nnn, \embedded_create:Vnn, \embedded_create:nvn}
 %  \begin{syntax}
-%   \cs{embedded_create:nnn}  \Arg{parent object} \Arg{proxy address} \Arg{id}
+%   \cs{embedded_create:nnn} \Arg{parent object} \Arg{proxy address} \Arg{id}
 %  \end{syntax}
 %  Creates an embedded object with name \meta{id} inside \meta{parent object}.
 %
 % \fromV{2.2}
+% \end{function}
+%
+% \begin{function}{\embedded_create:nnnnNN, \embedded_create:nnvncc}
+%  \begin{syntax}
+%   \cs{embedded_create:nnnnNN} \Arg{parent object} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  Same as \cs{embedded_create:nnn} but with the specified arguments. Use it only if \meta{parent object} doesn't provide information about \meta{module}, \meta{scope} or \meta{visibility}.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{variable}{\c_object_local_str, \c_object_global_str}
@@ -617,7 +626,7 @@
 %  \begin{itemize}
 %   \item the address of created objest as an |n| argument;
 %   \item the address of used proxy as an |n|  argument;
-%   \item the module in which object is created as an |n|  argument;
+%   \item the module in which object is created as an |n| argument;
 %   \item the scope as an |N| argument;
 %   \item the visibility as an |N| argument.
 %  \end{itemize}
@@ -1684,8 +1693,6 @@
 % Initialize module name and proxy name variables
 %    \begin{macrocode}
 
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
-
 \cs_new_protected:Nn \proxy_init_MP:nnnNN
   {
     \object_newconst_str:nnn
@@ -1693,7 +1700,7 @@
         \object_embedded_adr:nn{ #1 }{ /_I_/ }
       }
       { M }{ #3 }
-    \object_newconst_str:nnx
+    \object_newconst_str:nnn
       {
         \object_embedded_adr:nn{ #1 }{ /_I_/ }
       }
@@ -1705,66 +1712,64 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{variable}{\c_proxymin_address_str}
-% Variable containing the address of the \verb|proxymin| object.
-%    \begin{macrocode}
-\str_const:Nx \c_proxymin_address_str
-  { \object_address:nn { rawobjects }{ proxymin } }
-%    \end{macrocode}
-%\end{variable}
-%
-%
-% Source of \verb|proxymin| object
 %    \begin{macrocode}
 
-\proxy_init_SV:VVnNN \c_proxymin_address_str \c_proxymin_address_str
-  { rawobjects } \c_object_global_str \c_object_public_str
-  
-\proxy_init_MP:VVnNN \c_proxymin_address_str \c_proxymin_address_str
-  { rawobjects } \c_object_global_str \c_object_public_str
-
-\object_new_member:VnnNN \c_proxymin_address_str { init }{ tl }
-  \c_object_global_str \c_object_public_str
-  
-\object_new_member:VnnNN \c_proxymin_address_str { varlist }{ seq }
-  \c_object_global_str \c_object_public_str
-  
-\object_new_member:VnnNN \c_proxymin_address_str { objlist }{ seq }
-  \c_object_global_str \c_object_public_str
-  
-\proxy_push_member:Vnn \c_proxymin_address_str
-  { init }{ tl }
-\proxy_push_member:Vnn \c_proxymin_address_str
-  { varlist }{ seq }
-\proxy_push_member:Vnn \c_proxymin_address_str
-  { objlist }{ seq }
-\proxy_add_initializer:VN \c_proxymin_address_str
-  \proxy_init_SV:nnnNN
-\proxy_add_initializer:VN \c_proxymin_address_str
-  \proxy_init_MP:nnnNN
-  
+\cs_new_protected:Nn \@@_initproxy:nnnNN
+  {
+    \object_newconst_str:nnn
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { M }{ #3 }
+    \object_newconst_str:nnn
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { P }{ #2 }
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { S } #4
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { V } #5
+    \object_newconst:nnnn
+      {
+        \object_embedded_adr:nn{ #1 }{ /_I_/ }
+      }
+      { ifprox }{ bool }{ \c_true_bool }
+  }
+\cs_generate_variant:Nn \@@_initproxy:nnnNN { VVnNN }
 %    \end{macrocode}
 %
-% \begin{variable}{\c_proxylgt_address_str}
-% The address of the \verb|proxylgt| object.
-%    \begin{macrocode}
-\str_const:Nx \c_proxylgt_address_str
-  { \object_address:nn { rawobjects }{ proxylgt } }
-%    \end{macrocode}
-% \end{variable}
-%
-% Source of \verb|proxylgt| object
-%    \begin{macrocode}
-%    \end{macrocode}
 %
 %\begin{macro}[pTF]{\object_if_proxy:n}
 %Test if an object is a proxy.
 %    \begin{macrocode}
 
+\cs_new:Nn \@@_bol_com:N
+  {
+    \cs_if_exist_p:N #1 && \bool_if_p:N #1
+  }
+
+\cs_generate_variant:Nn \@@_bol_com:N { c }
+
 \prg_new_conditional:Nnn \object_if_proxy:n {p, T, F, TF}
   {
-    \object_test_proxy:nNTF { #1 } 
-	  \c_proxy_address_str
+    \bool_if:nTF
+      {
+        \@@_bol_com:c
+          {
+            \object_ncmember_adr:nnn
+              {
+                \object_embedded_adr:nn{ #1 }{ /_I_/ }
+              }
+              { ifprox }{ bool }
+          }
+      }
       {
         \prg_return_true:
       }
@@ -1814,11 +1819,9 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \embedded_create:nnn}
-% Creates an object from a proxy
+% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \embedded_create:nnnnNN, \embedded_create:nnn}
+% Creates an object from a proxy.
 %    \begin{macrocode}
-
-\msg_new:nnn { aa }{ mess }{ #1 }
 
 \msg_new:nnnn { rawobjects }{ notproxy }{ Fake ~ proxy }
   {
@@ -1835,23 +1838,21 @@
 
 \cs_new_protected:Nn \@@_create_anon:nnnNN
   {
+    \tl_if_empty:nF{ #1 }
+    {
 
     \@@_force_proxy:n { #1 }
-
-    \str_const:cn { \@@_object_modvar:n { #2 } }{ #3 }
-    \str_const:cx { \@@_object_pxyvar:n { #2 } }{ #1 }
-    \str_const:cV { \@@_object_scovar:n { #2 } } #4
-    \str_const:cV { \@@_object_visvar:n { #2 } } #5
 
     \seq_map_inline:cn
       {
         \object_member_adr:nnn { #1 }{ varlist }{ seq }
       }
       {
-        \object_new_member:nnv { #2 }{ ##1 }
+        \object_new_member:nnvNN { #3 }{ ##1 }
           {
             \object_ncmember_adr:nnn { #1 }{ ##1 _ type }{ str }
           }
+          #4 #5
       }
       
     \seq_map_inline:cn
@@ -1859,22 +1860,35 @@
         \object_member_adr:nnn { #1 }{ objlist }{ seq }
       }
       {
-        \embedded_create:nvn
-          { #2 }
+        \embedded_create:nvnnNN
+          { #3 }
           {
             \object_ncmember_adr:nnn { #1 }{ ##1 _ proxy }{ str }
           }
-          { ##1 }
+          { #2 }{ ##1 } #4 #5
       }
+
+    \tl_map_inline:cn
+      {
+        \object_member_adr:nnn { #1 }{ init }{ tl }
+      }
+      {
+        ##1 { #3 }{ #1 }{ #2 } #4 #5
+      }
+
+    }
   }
   
-\cs_generate_variant:Nn \@@_create_anon:nnnNN { nnvcc }
+\cs_generate_variant:Nn \@@_create_anon:nnnNN { xnxNN }
 
 \cs_new_protected:Nn \object_create:nnnNN
   {
-    \@@_create_anon:nnnNN { #1 }{ \object_address:nn { #2 }{ #3 } }
-      { #2 } #4 #5
+    \@@_create_anon:xnxNN { #1 }{ #2 }
+      { \object_address:nn { #2 }{ #3 } }
+      #4 #5
   }
+
+\cs_generate_variant:Nn \object_create:nnnNN { VnnNN }
 
 \cs_new_protected:Nn \object_create_set:NnnnNN
   {
@@ -1887,32 +1901,195 @@
     \object_create:nnnNN { #2 }{ #3 }{ #4 } #5 #6
     \str_gset:Nx #1 { \object_address:nn { #3 }{ #4 } }
   }
+
+\cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
+\cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
   
-\cs_new_protected:Nn \embedded_create:nnn
+\cs_new_protected:Nn \embedded_create:nnnnNN
   {
-    \@@_create_anon:nnvcc { #2 }
+    \@@_create_anon:xnxNN { #2 }
+      { #3 }
       {
         \object_embedded_adr:nn
-          { #1 }{ #3 }
+          { #1 }{ #4 }
+      }
+      #5 #6
+  }
+
+\cs_generate_variant:Nn \embedded_create:nnnnNN { nvnnNN, nnvncc }
+
+\cs_new_protected:Nn \embedded_create:nnn
+  {
+    \embedded_create:nnvncc { #1 }{ #2 }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { M }{ str }
+      }
+      { #3 }
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { S }{ str }
       }
       {
-        \@@_object_modvar:n{ #1 }
-      }
-      {
-        \@@_object_scovar:n{ #1 }
-      }
-      {
-        \@@_object_visvar:n{ #1 }
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { V }{ str }
       }
   }
 
-\cs_generate_variant:Nn \object_create:nnnNN { VnnNN }
-\cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
-\cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
 \cs_generate_variant:Nn \embedded_create:nnn { nvn, Vnn }
 
 %    \end{macrocode}
 %\end{macro}
+%
+%\begin{macro}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
+%Creates a new proxy object
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \proxy_create:nnN
+  {
+    \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
+      \c_object_global_str #3
+  }
+
+\cs_new_protected:Nn \proxy_create_set:NnnN
+  {
+    \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+      \c_object_global_str #4
+  }
+
+\cs_new_protected:Nn \proxy_create_gset:NnnN
+  {
+    \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+      \c_object_global_str #4
+  }
+
+%    \end{macrocode}
+%\end{macro}
+%
+%\begin{macro}{\proxy_push_member:nnn}
+% Push a new member inside a proxy.
+%    \begin{macrocode}
+\cs_new_protected:Nn \proxy_push_member:nnn
+  {
+    \object_newconst_str:nnn { #1 }{ #2 _ type }{ #3 }
+    \seq_gput_left:cn
+      {
+        \object_member_adr:nnn { #1 }{ varlist }{ seq }
+      }
+      { #2 }
+  }
+
+\cs_generate_variant:Nn \proxy_push_member:nnn { Vnn }
+
+%    \end{macrocode}
+%\end{macro}
+%
+%\begin{macro}{\proxy_push_embedded:nnn}
+% Push a new embedded object inside a proxy.
+%    \begin{macrocode}
+
+\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
+
+\cs_new_protected:Nn \proxy_push_embedded:nnn
+  {
+    \object_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
+    \seq_gput_left:cn
+      {
+        \object_member_adr:nnn { #1 }{ objlist }{ seq }
+      }
+      { #2 }
+  }
+
+\cs_generate_variant:Nn \proxy_push_embedded:nnn { Vnn }
+
+%    \end{macrocode}
+%\end{macro}
+%
+%\begin{macro}{\proxy_add_initializer:nN}
+% Push a new embedded object inside a proxy.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \proxy_add_initializer:nN
+  {
+    \tl_gput_right:cn
+      {
+        \object_member_adr:nnn { #1 }{ init }{ tl }
+      }
+      { #2 }
+  }
+
+\cs_generate_variant:Nn \proxy_add_initializer:nN { VN }
+
+%    \end{macrocode}
+%\end{macro}
+%
+%\begin{variable}{\c_proxy_empty_adr_str}
+% A proxy object that initialize only the needed internal variables, useful to create empty objects.
+%    \begin{macrocode}
+\str_const:Nx \c_proxy_empty_adr_str
+  { \object_address:nn { rawobjects }{ empty } }
+
+
+\@@_initproxy:VVnNN \c_proxy_empty_adr_str \c_proxy_empty_adr_str
+  { rawobjects } \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxy_empty_adr_str { init }{ tl }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxy_empty_adr_str { varlist }{ seq }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxy_empty_adr_str { objlist }{ seq }
+  \c_object_global_str \c_object_public_str
+
+\proxy_add_initializer:VN \c_proxy_empty_adr_str
+  \proxy_init_SV:nnnNN
+\proxy_add_initializer:VN \c_proxy_empty_adr_str
+  \proxy_init_MP:nnnNN
+
+%    \end{macrocode}
+%\end{variable}
+%
+%\begin{variable}{\c_proxymin_address_str}
+% Variable containing the address of the \verb|proxymin| object.
+%    \begin{macrocode}
+\str_const:Nx \c_proxymin_address_str
+  { \object_address:nn { rawobjects }{ proxymin } }
+
+
+\@@_initproxy:VVnNN \c_proxymin_address_str \c_proxy_empty_adr_str
+  { rawobjects } \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxymin_address_str { init }{ tl }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxymin_address_str { varlist }{ seq }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxymin_address_str { objlist }{ seq }
+  \c_object_global_str \c_object_public_str
+
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { init }{ tl }
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { varlist }{ seq }
+\proxy_push_member:Vnn \c_proxymin_address_str
+  { objlist }{ seq }
+
+\proxy_add_initializer:VN \c_proxymin_address_str
+  \@@_initproxy:nnnNN
+
+%    \end{macrocode}
+%\end{variable}
 %
 % \begin{macro}{\object_allocate_incr:NNnnNN, \object_gallocate_incr:NNnnNN, \object_allocate_gincr:NNnnNN, \object_gallocate_gincr:NNnnNN}
 % Create an address and use it to instantiate an object
@@ -1922,7 +2099,7 @@
   {
     anon . #3 . #2 . #1
   }
-  
+
 \cs_generate_variant:Nn \@@_combine_aux:nnn { Vnf }
 
 \cs_new:Nn \@@_combine:Nn
@@ -1988,73 +2165,6 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
-%Creates a new proxy object
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \proxy_create:nnN
-  {
-    \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
-      \c_object_global_str #3
-  }
-
-\cs_new_protected:Nn \proxy_create_set:NnnN
-  {
-    \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
-      \c_object_global_str #4
-  }
-
-\cs_new_protected:Nn \proxy_create_gset:NnnN
-  {
-    \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
-      \c_object_global_str #4
-  }
-
-%    \end{macrocode}
-%\end{macro}
-%
-%\begin{macro}{\proxy_push_member:nnn}
-% Push a new member inside a proxy.
-%    \begin{macrocode}
-\cs_new_protected:Nn \proxy_push_member:nnn
-  {
-    \@@_force_scope:n { #1 }
-    \object_newconst_str:nnn { #1 }{ #2 _ type }{ #3 }
-    \seq_gput_left:cn
-      {
-        \object_member_adr:nnn { #1 }{ varlist }{ seq }
-      }
-      { #2 }
-  }
-
-\cs_generate_variant:Nn \proxy_push_member:nnn { Vnn }
-
-%    \end{macrocode}
-%\end{macro}
-%
-%\begin{macro}{\proxy_push_embedded:nnn}
-% Push a new embedded object inside a proxy.
-%    \begin{macrocode}
-
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
-
-\cs_new_protected:Nn \proxy_push_embedded:nnn
-  {
-    \@@_force_scope:n { #1 }
-    \object_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
-    \seq_gput_left:cn
-      {
-        \object_member_adr:nnn { #1 }{ objlist }{ seq }
-      }
-      { #2 }
-  }
-
-\cs_generate_variant:Nn \proxy_push_embedded:nnn { Vnn }
-
-%    \end{macrocode}
-%\end{macro}
-%
-%
 %
 %\begin{macro}{\object_assign:nn}
 %Copy an object to another one.
@@ -2080,37 +2190,6 @@
 \cs_generate_variant:Nn \object_assign:nn { nV, Vn, VV }
 %    \end{macrocode}
 %\end{macro}
-%
-% A simple forward list proxy
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \rawobjects_fwl_inst:n
-  {
-    \object_if_exist:nF
-      {
-        \object_address:nn { rawobjects }{ fwl ! #1 }
-      }
-      {
-        \proxy_create:nnN { rawobjects }{ fwl ! #1 } \c_object_private_str
-        \proxy_push_member
-          {
-            \object_address:nn { rawobjects }{ fwl ! #1 }
-          }
-          { next }{ str }
-      }
-  }
-
-\cs_new_protected:Nn \rawobjects_fwl_newnode:nnnNN
-  {
-    \rawobjects_fwl_inst:n { #1 }
-    \object_create:nnnNN
-      {
-        \object_address:nn { rawobjects }{ fwl ! #1 }
-      }
-      { #2 }{ #3 } #4 #5
-  }
-
-%    \end{macrocode}
 %
 %    \begin{macrocode}
 %</package>
