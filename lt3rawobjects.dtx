@@ -1227,7 +1227,7 @@
       }
   }
   
-\cs_generate_variant:Nn \object_new_member:nnnNN { VnnNN }
+\cs_generate_variant:Nn \object_new_member:nnnNN { VnnNN, nnvNN }
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
@@ -1272,7 +1272,7 @@
       }
   }
 
-\cs_generate_variant:Nn \object_member_use:nnNN { VnnNN, nnncc }
+\cs_generate_variant:Nn \object_member_use:nnnNN { VnnNN, nnncc }
 \cs_generate_variant:Nn \object_member_use:nnn { Vnn, vnn, nnv }
 \cs_generate_variant:Nn \object_member_use:nn { Vn }
 
@@ -1515,6 +1515,10 @@
 \cs_generate_variant:Nn \object_newconst_dim:nnn { Vnn }
 \cs_generate_variant:Nn \object_newconst_skip:nnn { Vnn }
 \cs_generate_variant:Nn \object_newconst_fp:nnn { Vnn }
+
+
+\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
+\cs_generate_variant:Nn \object_newconst_str:nnn { nnV }
 
 %    \end{macrocode}
 %\end{macro}
@@ -2022,11 +2026,12 @@
 % Push a new embedded object inside a proxy.
 %    \begin{macrocode}
 
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
+\cs_generate_variant:Nn \tl_show:n { x }
 
 \cs_new_protected:Nn \proxy_push_embedded:nnn
   {
     \object_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
+    \tl_show:x{ \object_member_adr:nnn { #1 }{ objlist }{ seq } }
     \seq_gput_left:cn
       {
         \object_member_adr:nnn { #1 }{ objlist }{ seq }
