@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/12/09 2.2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2022/12/27 2.3-beta Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/12/09}{ 2.2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2022/12/27}{ 2.3-beta }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -38,8 +38,8 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{2.2}
-% \NewDocumentCommand{\thdta}{}{2022/12/09}
+% \NewDocumentCommand{\thvsn}{}{2.3-beta}
+% \NewDocumentCommand{\thdta}{}{2022/12/27}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 %
 % \title{The \pkg{lt3rawobjects} package}
@@ -185,6 +185,22 @@
 %  \item creating objects also creates additional hidden variables, taking so (little) additional space.
 % \end{itemize}
 %
+% \section{Minimal objects}
+% When you create an object with a proxy additional hidden constant are added to it in order to hold information about the object. Some held data are
+% \begin{itemize}
+%  \item the module in which your object is declared;
+%  \item the proxy that created it;
+%  \item its scope and visibility.
+% \end{itemize}
+%
+% These hidden variable are very useful and are needed to manage remote constants and access members and methods without specify their type, scope and visibility each time. Near constants and macros are perhaps the only items that doesn't need these internal information.
+%
+% Sometimes you don't want to create such internal variables for your objects despite objects without these hidden fields don't work well with third part libraries. Object with some of all these fields missing are called \emph{minimal objects}.
+%
+% You don't need a special function to instantiate a minimal object: any valid object address that has not been used could be used as an empty minimal object which you can populate it with subsequential calls to \cs{object_new_member}, \cs{object_newconst} or any other function (remember that for members you should specify every time their scope and visibility).
+%
+% If you really really need a proxy that creates minimal objects from version |2.3| you can use the |proxymin| proxy in |rawobjects| module. Also if you want to create only scope and visibility fields in your objects (in order to avoid specifying them every time) you can use instead the |proxylgt| proxy.
+%
 % \section{Library functions}
 % \label{sec:lib}
 %  \subsection{Base object functions}
@@ -311,7 +327,7 @@
 %  \begin{syntax}
 %   \cs{object_new_member:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
 %  \end{syntax}
-%  As \cs{object_new_member:nnn} but with specified scope and visibility.
+%  Same as \cs{object_new_member:nnn} but with specified scope and visibility.
 %
 % \fromV{2.3}
 % \end{function}
@@ -343,6 +359,15 @@
 %  Sets the value of specified member to \marg{value}. It calls implicitly \cs{\meta{member type}_(g)set:cn} then be sure to define it before calling this method.
 %
 % \fromV{2.1}
+% \end{function}
+%
+% \begin{function}{\object_member_set:nnnNNn, \object_member_set:VnnNNn, \object_member_set:nnnccn}
+%  \begin{syntax}
+%   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility} \Arg{value}
+%  \end{syntax}
+%  Same as \cs{object_member_set:nnnn} but with specified scope and visibility.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\object_member_set_eq:nnnN, \object_member_set_eq:nnvN, \object_member_set_eq:VnnN, \object_member_set_eq:nnnc, \object_member_set_eq:Vnnc, \object_member_set_eq:nnN, \object_member_set_eq:VnN, \object_member_set_eq:nnc, \object_member_set_eq:Vnc}
@@ -527,10 +552,28 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{variable}{\c_proxymin_address_str}
-%  The address of the |proxymin| object in the |rawobjects| module.
+% \begin{variable}{\c_proxy_address_str}
+%  The address of the |proxy| object in the |rawobjects| module.
 %
 % \fromV{1.0}
+% \end{variable}
+%
+% \begin{variable}{\c_proxy_min_adr_str}
+%  The address of the |proxymin| object in the |rawobjects| module.
+%
+% \fromV{2.3}
+% \end{variable}
+%
+% \begin{variable}{\c_proxy_lgt_adr_str}
+%  The address of the |proxylgt| object in the |rawobjects| module.
+%
+% \fromV{2.3}
+% \end{variable}
+%
+% \begin{variable}{\c_proxy_empty_adr_str}
+%  The address of the |empty| proxy object in the |rawobjects| module. It can be used to create empty objects.
+%
+% \fromV{2.3}
 % \end{variable}
 %
 % \begin{function}{\object_create:nnnNN, \object_create:VnnNN}
@@ -632,6 +675,16 @@
 %  \end{itemize}
 %
 %  Initializer will be executed in the same order they're added.
+% \end{function}
+%
+% \begin{function}{\proxy_init_SV:nnnNN, \proxy_init_MP:nnnNN}
+%  \begin{syntax}
+%   \cs{proxy_init_SV:nnnNN} \Arg{proxy address} \Arg{module} \Arg{address} \meta{scope} \meta{visibility}
+%  \end{syntax}
+%  Initializers that can be added to proxies via \cs{proxy_add_initializer}. They respectively create scope, visibility and module, proxy internal variables in the newly created object ad \meta{address}. They're both present in |proxy| and |empty| proxies and only \cs{proxy_init_SV} is present n |proxylgt|.
+%
+% \fromV{2.3}
+% \end{function}
 %
 % \begin{function}{\object_assign:nn, \object_assign:Vn, \object_assign:nV, \object_assign:VV}
 %  \begin{syntax}
@@ -844,8 +897,6 @@
 %    \begin{macrocode}
 %<@@=rawobjects>
 %    \end{macrocode}
-%
-%
 %
 %\begin{variable}{\c_object_local_str, \c_object_global_str, \c_object_public_str, \c_object_private_str}
 %    \begin{macrocode}
@@ -1155,6 +1206,11 @@
 %
 %    \begin{macrocode}
 
+\msg_new:nnnn { rawobjects }{ noerr }{ Unspecified ~ scope }
+  {
+    Object ~ #1 ~ hasn't ~ a ~ scope ~ variable
+  }
+
 \msg_new:nnnn { rawobjects }{ scoperr }{ Nonstandard ~ scope }
   {
     Operation ~ not ~ permitted ~ on ~ object ~ #1 ~
@@ -1163,12 +1219,25 @@
 
 \cs_new_protected:Nn \@@_force_scope:n
   {
-    \bool_if:nF
+    \cs_if_exist:cTF
       {
-        \object_if_local_p:n { #1 } || \object_if_global_p:n { #1 }
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { S }{ str }
       }
       {
-        \msg_error:nnx { rawobjects }{ scoperr }{ #1 }
+        \bool_if:nF
+          {
+            \object_if_local_p:n { #1 } || \object_if_global_p:n { #1 }
+          }
+          {
+            \msg_error:nnx { rawobjects }{ scoperr }{ #1 }
+          }
+      }
+      {
+        \msg_error:nnx { rawobjects }{ noerr }{ #1 }
       }
   }
 
@@ -1218,12 +1287,16 @@
 %Creates a new member variable
 %    \begin{macrocode}
 
+\msg_new:nnnn{ rawobjects }{ nonew }{ Invalid ~ basic ~ type }{ Basic ~ type ~ #1 ~ doesn't ~have ~ function ~ #1_new:c }
+
 \cs_new_protected:Nn \object_new_member:nnnNN
   {
-    \@@_force_scope:n { #1 }
-    \cs_if_exist_use:cT { #3 _ new:c }
+    \cs_if_exist_use:cTF { #3 _ new:c }
       {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } #4 #5 }
+        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
+      }
+      {
+        \msg_error:nnn{ rawobjects }{ nonew }{ #3 }
       }
   }
   
@@ -1231,10 +1304,12 @@
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
-    \@@_force_scope:n { #1 }
-    \cs_if_exist_use:cT { #3 _ new:c }
+    \cs_if_exist_use:cTF { #3 _ new:c }
       {
         { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
+      }
+      {
+        \msg_error:nnn{ rawobjects }{ nonew }{ #3 }
       }
   }
 
@@ -1385,7 +1460,14 @@
 
 \cs_new:Nn \object_rcmember_adr:nnn
   {
-    \object_ncmember_adr:vnn { \@@_object_pxyvar:n { #1 } }
+    \object_ncmember_adr:vnn
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { P }{ str }
+      }
       { #2 }{ #3 }
   }
 
@@ -1575,7 +1657,11 @@
   {
     \object_ncmethod_adr:vnn
       {
-        \@@_object_pxyvar:n { #1 }
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { P }{ str }
       }
       { #2 }{ #3 }
   }
@@ -1818,7 +1904,14 @@
 
 \prg_new_conditional:Nnn \object_test_proxy:nn {p, T, F, TF}
   {
-    \str_if_eq:veTF { \@@_object_pxyvar:n { #1 } } 
+    \str_if_eq:veTF
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { P }{ str }
+      }
 	  { #2 }
       {
         \prg_return_true:
@@ -1830,7 +1923,14 @@
 
 \prg_new_conditional:Nnn \object_test_proxy:nN {p, T, F, TF}
   {
-    \str_if_eq:cNTF { \@@_object_pxyvar:n { #1 } } 
+    \str_if_eq:cNTF
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          }
+          { P }{ str }
+      }
 	  #2
       {
         \prg_return_true:
@@ -2007,6 +2107,7 @@
 %\begin{macro}{\proxy_push_member:nnn}
 % Push a new member inside a proxy.
 %    \begin{macrocode}
+
 \cs_new_protected:Nn \proxy_push_member:nnn
   {
     \object_newconst_str:nnn { #1 }{ #2 _ type }{ #3 }
@@ -2026,12 +2127,9 @@
 % Push a new embedded object inside a proxy.
 %    \begin{macrocode}
 
-\cs_generate_variant:Nn \tl_show:n { x }
-
 \cs_new_protected:Nn \proxy_push_embedded:nnn
   {
     \object_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
-    \tl_show:x{ \object_member_adr:nnn { #1 }{ objlist }{ seq } }
     \seq_gput_left:cn
       {
         \object_member_adr:nnn { #1 }{ objlist }{ seq }
@@ -2245,7 +2343,11 @@
       {
         \object_member_adr:vnn
           {
-            \@@_object_pxyvar:n { #1 }
+            \object_ncmember_adr:nnn
+              {
+                \object_embedded_adr:nn{ #1 }{ /_I_/ }
+              }
+              { P }{ str }
           }
           { varlist }{ seq }
       }
