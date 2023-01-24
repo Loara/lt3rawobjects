@@ -185,22 +185,6 @@
 %  \item creating objects also creates additional hidden variables, taking so (little) additional space.
 % \end{itemize}
 %
-% \section{Minimal objects}
-% When you create an object with a proxy additional hidden constant are added to it in order to hold information about the object. Some held data are
-% \begin{itemize}
-%  \item the module in which your object is declared;
-%  \item the proxy that created it;
-%  \item its scope and visibility.
-% \end{itemize}
-%
-% These hidden variable are very useful and are needed to manage remote constants and access members and methods without specify their type, scope and visibility each time. Near constants and macros are perhaps the only items that doesn't need these internal information.
-%
-% Sometimes you don't want to create such internal variables for your objects despite objects without these hidden fields don't work well with third part libraries. Object with some of all these fields missing are called \emph{minimal objects}.
-%
-% You don't need a special function to instantiate a minimal object: any valid object address that has not been used could be used as an empty minimal object which you can populate it with subsequential calls to \cs{object_new_member}, \cs{object_newconst} or any other function (remember that for members you should specify every time their scope and visibility).
-%
-% If you really really need a proxy that creates minimal objects from version |2.3| you can use the |proxymin| proxy in |rawobjects| module. Also if you want to create only scope and visibility fields in your objects (in order to avoid specifying them every time) you can use instead the |proxylgt| proxy.
-%
 % \section{Library functions}
 % \label{sec:lib}
 %  \subsection{Base object functions}
@@ -558,24 +542,6 @@
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{variable}{\c_proxy_min_adr_str}
-%  The address of the |proxymin| object in the |rawobjects| module.
-%
-% \fromV{2.3}
-% \end{variable}
-%
-% \begin{variable}{\c_proxy_lgt_adr_str}
-%  The address of the |proxylgt| object in the |rawobjects| module.
-%
-% \fromV{2.3}
-% \end{variable}
-%
-% \begin{variable}{\c_proxy_empty_adr_str}
-%  The address of the |empty| proxy object in the |rawobjects| module. It can be used to create empty objects.
-%
-% \fromV{2.3}
-% \end{variable}
-%
 % \begin{function}{\object_create:nnnNN, \object_create:VnnNN}
 %  \begin{syntax}
 %   \cs{object_create:nnnNN} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
@@ -669,21 +635,10 @@
 %  \begin{itemize}
 %   \item the full expanded address of used proxy as an |n| argument;
 %   \item the module name as an |n| argument;
-%   \item the full expanded address of created object as an |n| argument;
-%   \item the scope as an |N| argument;
-%   \item the visibility as an |N| argument.
+%   \item the full expanded address of created object as an |n| argument.
 %  \end{itemize}
 %
 %  Initializer will be executed in the same order they're added.
-% \end{function}
-%
-% \begin{function}{\proxy_init_SV:nnnNN, \proxy_init_MP:nnnNN}
-%  \begin{syntax}
-%   \cs{proxy_init_SV:nnnNN} \Arg{proxy address} \Arg{module} \Arg{address} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Initializers that can be added to proxies via \cs{proxy_add_initializer}. They respectively create scope, visibility and module, proxy internal variables in the newly created object ad \meta{address}. They're both present in |proxy| and |empty| proxies and only \cs{proxy_init_SV} is present n |proxylgt|.
-%
-% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\object_assign:nn, \object_assign:Vn, \object_assign:nV, \object_assign:VV}
@@ -1756,97 +1711,17 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\proxy_init_SV:nnnNN}
-% Initialize scope and visibility variables
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \proxy_init_SV:nnnNN
+\cs_new_protected:Nn \@@_initproxy:nnn
   {
-    \object_newconst_str:nnV
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { S } #4
-    \object_newconst_str:nnV
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { V } #5
-  }
-  
-\cs_generate_variant:Nn \proxy_init_SV:nnnNN { nnVNN, nVVNN }
-
-%    \end{macrocode}
-% \end{macro}
-%
-%\begin{macro}{\proxy_init_MP:nnnNN}
-% Initialize module name and proxy name variables
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \proxy_init_MP:nnnNN
-  {
-    \object_newconst_str:nnn
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { M }{ #2 }
-    \object_newconst_str:nnn
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { P }{ #1 }
-  }
-  
-\cs_generate_variant:Nn \proxy_init_MP:nnnNN { nnVNN, nVVNN }
-
-%    \end{macrocode}
-% \end{macro}
-%
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \@@_initproxy:nnnNN
-  {
-    \object_newconst_str:nnn
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { M }{ #2 }
-    \object_newconst_str:nnn
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { P }{ #1 }
-    \object_newconst_str:nnV
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { S } #4
-    \object_newconst_str:nnV
-      {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
-      }
-      { V } #5
     \object_newconst:nnnn
       {
         \object_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { ifprox }{ bool }{ \c_true_bool }
   }
-\cs_generate_variant:Nn \@@_initproxy:nnnNN { VnVNN }
-
-\cs_new_protected:Nn \@@_initproxy_lg:nnnNN
-  {
-    \proxy_add_initializer:nN { #3 }
-      \proxy_init_SV:nnnNN
-  }
-
-\cs_new_protected:Nn \@@_initproxy_all:nnnNN
-  {
-    \proxy_add_initializer:nN { #3 }
-      \proxy_init_SV:nnnNN
-    \proxy_add_initializer:nN { #3 }
-      \proxy_init_MP:nnnNN
-  }
+\cs_generate_variant:Nn \@@_initproxy:nnn { VnV }
 
 %    \end{macrocode}
 %
@@ -1971,6 +1846,28 @@
     {
 
     \@@_force_proxy:n { #1 }
+	
+	
+    \object_newconst_str:nnn
+      {
+        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+      }
+      { M }{ #2 }
+    \object_newconst_str:nnn
+      {
+        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+      }
+      { P }{ #1 }
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+      }
+      { S } #4
+    \object_newconst_str:nnV
+      {
+        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+      }
+      { V } #5
 
     \seq_map_inline:cn
       {
@@ -2002,7 +1899,7 @@
         \object_member_adr:nnn { #1 }{ init }{ tl }
       }
       {
-        ##1 { #1 }{ #2 }{ #3 } #4 #5
+        ##1 { #1 }{ #2 }{ #3 }
       }
 
     }
@@ -2160,88 +2057,47 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{variable}{\c_proxy_min_adr_str}
-% Variable containing the address of the \verb|proxymin| object.
-%    \begin{macrocode}
-\str_const:Nx \c_proxy_min_adr_str
-  { \object_address:nn { rawobjects }{ proxymin } }
-
-
-\@@_initproxy:VnVNN \c_proxy_min_adr_str { rawobjects } \c_proxy_min_adr_str
-  \c_object_global_str \c_object_public_str
-
-\object_new_member:VnnNN \c_proxy_min_adr_str { init }{ tl }
-  \c_object_global_str \c_object_public_str
-
-\object_new_member:VnnNN \c_proxy_min_adr_str { varlist }{ seq }
-  \c_object_global_str \c_object_public_str
-
-\object_new_member:VnnNN \c_proxy_min_adr_str { objlist }{ seq }
-  \c_object_global_str \c_object_public_str
-
-\proxy_push_member:Vnn \c_proxy_min_adr_str
-  { init }{ tl }
-\proxy_push_member:Vnn \c_proxy_min_adr_str
-  { varlist }{ seq }
-\proxy_push_member:Vnn \c_proxy_min_adr_str
-  { objlist }{ seq }
-
-\proxy_add_initializer:VN \c_proxy_min_adr_str
-  \@@_initproxy:nnnNN
-
-%    \end{macrocode}
-%\end{variable}
-%
-%\begin{variable}{\c_proxy_empty_adr_str}
-% A proxy object that initialize only the needed internal variables, useful to create empty objects.
-%    \begin{macrocode}
-\str_const:Nx \c_proxy_empty_adr_str
-  { \object_address:nn { rawobjects }{ empty } }
-
-\@@_create_anon:VnVNN \c_proxy_min_adr_str { rawobjects } \c_proxy_empty_adr_str
-  \c_object_global_str \c_object_public_str
-
-\proxy_add_initializer:VN \c_proxy_empty_adr_str
-  \proxy_init_SV:nnnNN
-\proxy_add_initializer:VN \c_proxy_empty_adr_str
-  \proxy_init_MP:nnnNN
-
-%    \end{macrocode}
-%\end{variable}
-%
-%\begin{variable}{\c_proxy_lgt_adr_str}
-% Variable containing the address of the \verb|proxylgt| object.
-%    \begin{macrocode}
-\str_const:Nx \c_proxy_lgt_adr_str
-  { \object_address:nn { rawobjects }{ proxylgt } }
-
-
-\@@_create_anon:VnVNN \c_proxy_min_adr_str { rawobjects } \c_proxy_lgt_adr_str
-  \c_object_global_str \c_object_public_str
-
-\proxy_push_member:Vnn \c_proxy_lgt_adr_str
-  { init }{ tl }
-\proxy_push_member:Vnn \c_proxy_lgt_adr_str
-  { varlist }{ seq }
-\proxy_push_member:Vnn \c_proxy_lgt_adr_str
-  { objlist }{ seq }
-
-\proxy_add_initializer:VN \c_proxy_lgt_adr_str
-  \@@_initproxy:nnnNN
-\proxy_add_initializer:VN \c_proxy_lgt_adr_str
-  \@@_initproxy_lg:nnnNN
-
-%    \end{macrocode}
-%\end{variable}
-%
 %\begin{variable}{\c_proxy_address_str}
 % Variable containing the address of the \verb|proxy| object.
 %    \begin{macrocode}
+
 \str_const:Nx \c_proxy_address_str
   { \object_address:nn { rawobjects }{ proxy } }
+  
+\object_newconst_str:nnn
+  {
+    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+  }
+  { M }{ rawobjects }
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+  }
+  { P } \c_proxy_address_str
+  
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+  }
+  { S } \c_object_global_str
+
+\object_newconst_str:nnV
+  {
+    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+  }
+  { V } \c_object_public_str
 
 
-\@@_create_anon:VnVNN \c_proxy_min_adr_str { rawobjects } \c_proxy_address_str
+\@@_initproxy:VnV \c_proxy_address_str { rawobjects } \c_proxy_address_str
+
+\object_new_member:VnnNN \c_proxy_address_str { init }{ tl }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxy_address_str { varlist }{ seq }
+  \c_object_global_str \c_object_public_str
+
+\object_new_member:VnnNN \c_proxy_address_str { objlist }{ seq }
   \c_object_global_str \c_object_public_str
 
 \proxy_push_member:Vnn \c_proxy_address_str
@@ -2252,9 +2108,7 @@
   { objlist }{ seq }
 
 \proxy_add_initializer:VN \c_proxy_address_str
-  \@@_initproxy:nnnNN
-\proxy_add_initializer:VN \c_proxy_address_str
-  \@@_initproxy_all:nnnNN
+  \@@_initproxy:nnn
 
 %    \end{macrocode}
 %\end{variable}
