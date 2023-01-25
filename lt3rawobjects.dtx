@@ -268,15 +268,6 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_member_adr:nnnNN, \object_member_adr:VnnNN, \object_member_adr:nnncc}
-%  \begin{syntax}
-%   \cs{object_member_adr:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Same as \cs{object_member_adr} but scope and visibility are specified as arguments instead of reading hidden variables. This is useful for objects created without an internal auxiliary structure.
-%
-% \fromV{2.3}
-% \end{function}
-%
 % \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn, \object_member_if_exist:nn, \object_member_if_exist:Vn}
 %  \begin{syntax}
 %   \cs{object_member_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
@@ -307,15 +298,6 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\object_new_member:nnnNN, \object_new_member:VnnNN}
-%  \begin{syntax}
-%   \cs{object_new_member:nnnNN} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Same as \cs{object_new_member:nnn} but with specified scope and visibility.
-%
-% \fromV{2.3}
-% \end{function}
-%
 % \begin{function}[EXP]{\object_member_use:nnn, \object_member_use:Vnn, \object_member_use:nnv, \object_member_use:nn, \object_member_use:Vn}
 %  \begin{syntax}
 %   \cs{object_member_use:nnn} \marg{address} \marg{member name} \marg{member type}
@@ -326,15 +308,6 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_member_use:nnnNN, \object_member_use:VnnNN, \object_member_use:nnncc}
-%  \begin{syntax}
-%   \cs{object_member_use:nnnNN} \marg{address} \marg{member name} \marg{member type} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Same as \cs{object_member_use:nnn} but with the specified scope and visibility.
-%
-% \fromV{2.3}
-% \end{function}
-%
 % \begin{function}{\object_member_set:nnnn, \object_member_set:nnvn, \object_member_set:Vnnn, \object_member_set:nnn, \object_member_set:Vnn}
 %  \begin{syntax}
 %   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \Arg{value}
@@ -343,15 +316,6 @@
 %  Sets the value of specified member to \marg{value}. It calls implicitly \cs{\meta{member type}_(g)set:cn} then be sure to define it before calling this method.
 %
 % \fromV{2.1}
-% \end{function}
-%
-% \begin{function}{\object_member_set:nnnNNn, \object_member_set:VnnNNn, \object_member_set:nnnccn}
-%  \begin{syntax}
-%   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \meta{scope} \meta{visibility} \Arg{value}
-%  \end{syntax}
-%  Same as \cs{object_member_set:nnnn} but with specified scope and visibility.
-%
-% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\object_member_set_eq:nnnN, \object_member_set_eq:nnvN, \object_member_set_eq:VnnN, \object_member_set_eq:nnnc, \object_member_set_eq:Vnnc, \object_member_set_eq:nnN, \object_member_set_eq:VnN, \object_member_set_eq:nnc, \object_member_set_eq:Vnc}
@@ -558,15 +522,6 @@
 %  Creates an embedded object with name \meta{id} inside \meta{parent object}.
 %
 % \fromV{2.2}
-% \end{function}
-%
-% \begin{function}{\embedded_create:nnnnNN, \embedded_create:nnvncc}
-%  \begin{syntax}
-%   \cs{embedded_create:nnnnNN} \Arg{parent object} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Same as \cs{embedded_create:nnn} but with the specified arguments. Use it only if \meta{parent object} doesn't provide information about \meta{module}, \meta{scope} or \meta{visibility}.
-%
-% \fromV{2.3}
 % \end{function}
 %
 % \begin{variable}{\c_object_local_str, \c_object_global_str}
@@ -871,6 +826,19 @@
     \str_if_eq:NNF #1 \c_object_local_str
       { g }
   }
+  
+\cs_generate_variant:Nn \@@_scope_pfx:N { c }
+
+\cs_new:Nn \@@_scope_pfx_cl:n 
+  {
+    \@@_scope_pfx:c{
+	  \object_ncmember_adr:nnn 
+	    {
+		  \object_embedded_adr:nn { #1  }{ /_I_/ }
+		}
+		{ S }{ str }
+	}
+  }  
 
 \cs_new:Nn \@@_vis_var:N
   {
@@ -1091,18 +1059,18 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_member_adr:nnnNN}
+%\begin{macro}{\@@_member_adr:nnnNN}
 % Macro address without object inference
 %    \begin{macrocode}
 
-\cs_new:Nn \object_member_adr:nnnNN
+\cs_new:Nn \@@_member_adr:nnnNN
   {
     \@@_scope:N #4
     \@@_vis_var:N #5
     #1 \tl_to_str:n { _ MEMBER _ #2 _ #3 }
   }
   
-\cs_generate_variant:Nn \object_member_adr:nnnNN { VnnNN, nnncc }
+\cs_generate_variant:Nn \@@_member_adr:nnnNN { VnnNN, nnncc }
 
 %    \end{macrocode}
 % \end{macro}
@@ -1113,7 +1081,7 @@
 
 \cs_new:Nn \object_member_adr:nnn
   {
-    \object_member_adr:nnncc { #1 }{ #2 }{ #3 }
+    \@@_member_adr:nnncc { #1 }{ #2 }{ #3 }
       {
         \object_ncmember_adr:nnn
           {
@@ -1238,24 +1206,11 @@
 %    \end{macrocode}
 % \end{macro}
 
-%\begin{macro}{\object_new_member:nnnNN, \object_new_member:nnn}
+%\begin{macro}{\object_new_member:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
 
 \msg_new:nnnn{ rawobjects }{ nonew }{ Invalid ~ basic ~ type }{ Basic ~ type ~ #1 ~ doesn't ~have ~ function ~ #1_new:c }
-
-\cs_new_protected:Nn \object_new_member:nnnNN
-  {
-    \cs_if_exist_use:cTF { #3 _ new:c }
-      {
-        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
-      }
-      {
-        \msg_error:nnn{ rawobjects }{ nonew }{ #3 }
-      }
-  }
-  
-\cs_generate_variant:Nn \object_new_member:nnnNN { VnnNN, nnvNN }
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
@@ -1267,23 +1222,15 @@
         \msg_error:nnn{ rawobjects }{ nonew }{ #3 }
       }
   }
-
+  
 \cs_generate_variant:Nn \object_new_member:nnn { Vnn, nnv }
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_use:nnnNN, \object_member_use:nnn, \object_member_use:nn}
+%\begin{macro}{\object_member_use:nnn, \object_member_use:nn}
 %Uses a member variable
 %    \begin{macrocode}
-
-\cs_new:Nn \object_member_use:nnnNN
-  {
-    \cs_if_exist_use:cT { #3 _ use:c }
-      {
-        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
-      }
-  }
 
 \cs_new:Nn \object_member_use:nnn
   {
@@ -1302,49 +1249,26 @@
       }
   }
 
-\cs_generate_variant:Nn \object_member_use:nnnNN { VnnNN, nnncc }
 \cs_generate_variant:Nn \object_member_use:nnn { Vnn, vnn, nnv }
 \cs_generate_variant:Nn \object_member_use:nn { Vn }
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_set:nnnNNn, \object_member_set:nnnn, \object_member_set_eq:nnn}
+%\begin{macro}{\object_member_set:nnnn, \object_member_set_eq:nnn}
 % Set the value a member.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_member_set:nnnNNn
+\cs_new_protected:Nn \object_member_set:nnnn
   {
     \cs_if_exist_use:cT
       {
-        #3 _ \@@_scope_pfx:N #4 set:cn
+        #3 _ \@@_scope_pfx_cl:n{ #1 } set:cn
       }
       {
-        { \object_member_adr:nnnNN { #1 }{ #2 }{ #3 } #4 #5 }
-        { #6 }
+        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
+        { #4 }
       }
-  }
-  
-\cs_generate_variant:Nn \object_member_set:nnnNNn { VnnNNn, nnnccn }
-
-\cs_new_protected:Nn \object_member_set:nnnn
-  {
-    \object_member_set:nnnccn{ #1 }{ #2 }{ #3 }
-      {
-        \object_ncmember_adr:nnn
-          {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
-          }
-          { S }{ str }
-      }
-      {
-        \object_ncmember_adr:nnn
-          {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
-          }
-          { V }{ str }
-      }
-      { #4 }
   }
 
 \cs_generate_variant:Nn \object_member_set:nnnn { Vnnn, nnvn }
@@ -1823,7 +1747,7 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \embedded_create:nnnnNN, \embedded_create:nnn}
+% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \embedded_create:nnn}
 % Creates an object from a proxy.
 %    \begin{macrocode}
 
@@ -1874,11 +1798,10 @@
         \object_member_adr:nnn { #1 }{ varlist }{ seq }
       }
       {
-        \object_new_member:nnvNN { #3 }{ ##1 }
+        \object_new_member:nnv { #3 }{ ##1 }
           {
             \object_ncmember_adr:nnn { #1 }{ ##1 _ type }{ str }
           }
-          #4 #5
       }
       
     \seq_map_inline:cn
@@ -1886,12 +1809,12 @@
         \object_member_adr:nnn { #1 }{ objlist }{ seq }
       }
       {
-        \embedded_create:nvnnNN
+        \embedded_create:nvn
           { #3 }
           {
             \object_ncmember_adr:nnn { #1 }{ ##1 _ proxy }{ str }
           }
-          { #2 }{ ##1 } #4 #5
+          { ##1 }
       }
 
     \tl_map_inline:cn
@@ -1905,7 +1828,7 @@
     }
   }
   
-\cs_generate_variant:Nn \@@_create_anon:nnnNN { xnxNN, VnVNN }
+\cs_generate_variant:Nn \@@_create_anon:nnnNN { xnxNN, xvxcc }
 
 \cs_new_protected:Nn \object_create:nnnNN
   {
@@ -1931,30 +1854,20 @@
 \cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
 \cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
   
-\cs_new_protected:Nn \embedded_create:nnnnNN
-  {
-    \@@_create_anon:xnxNN { #2 }
-      { #3 }
-      {
-        \object_embedded_adr:nn
-          { #1 }{ #4 }
-      }
-      #5 #6
-  }
-
-\cs_generate_variant:Nn \embedded_create:nnnnNN { nvnnNN, nnvncc }
-
 \cs_new_protected:Nn \embedded_create:nnn
   {
-    \embedded_create:nnvncc { #1 }{ #2 }
-      {
+    \@@_create_anon:xvxcc { #2 }
+	  {
         \object_ncmember_adr:nnn
           {
             \object_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { M }{ str }
       }
-      { #3 }
+      {
+        \object_embedded_adr:nn
+          { #1 }{ #3 }
+      }
       {
         \object_ncmember_adr:nnn
           {
@@ -2091,14 +2004,11 @@
 
 \@@_initproxy:VnV \c_proxy_address_str { rawobjects } \c_proxy_address_str
 
-\object_new_member:VnnNN \c_proxy_address_str { init }{ tl }
-  \c_object_global_str \c_object_public_str
+\object_new_member:Vnn \c_proxy_address_str { init }{ tl }
 
-\object_new_member:VnnNN \c_proxy_address_str { varlist }{ seq }
-  \c_object_global_str \c_object_public_str
+\object_new_member:Vnn \c_proxy_address_str { varlist }{ seq }
 
-\object_new_member:VnnNN \c_proxy_address_str { objlist }{ seq }
-  \c_object_global_str \c_object_public_str
+\object_new_member:Vnn \c_proxy_address_str { objlist }{ seq }
 
 \proxy_push_member:Vnn \c_proxy_address_str
   { init }{ tl }
