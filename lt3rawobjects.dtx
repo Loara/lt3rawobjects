@@ -41,6 +41,7 @@
 % \NewDocumentCommand{\thvsn}{}{2.3-beta}
 % \NewDocumentCommand{\thdta}{}{2022/12/27}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
+% \NewDocumentCommand{\fromVD}{ m m }{{\ttfamily From: #1}\par {\ttfamily Deprecated in: #2}}
 %
 % \title{The \pkg{lt3rawobjects} package}
 %   \author{Paolo De Donato}
@@ -510,9 +511,19 @@
 %  \begin{syntax}
 %   \cs{object_create:nnnNN} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
 %  \end{syntax}
-%  Creates an object by using the proxy at \meta{proxy address} and the specified parameters.
+%  Creates an object by using the proxy at \meta{proxy address} and the specified parameters. Use this function only if you need to create private objects (at present private objects are functionally equivalent to public objects) or if you need to compile your project with an old version of this library (|< 2.3|).
 %
 % \fromV{1.0}
+% \end{function}
+%
+% \begin{function}{\object_create:nnnN, \object_create:VnnN, \object_create:nnn, \object_create:Vnn}
+%  \begin{syntax}
+%   \cs{object_create:nnnN} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope}\\
+%   \cs{object_create:nnn} \Arg{proxy address} \Arg{module} \Arg{id}
+%  \end{syntax}
+%  Same as \cs{object_create:nnnNN} but both create only public objects, and the |:nnn| version only global ones. Always use these two function instead of \cs{object_create:nnnNN} unless you strictly need private objects.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\embedded_create:nnn, \embedded_create:Vnn, \embedded_create:nvn}
@@ -556,12 +567,22 @@
 %
 % \begin{function}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
 %  \begin{syntax}
-%   \cs{proxy_create:nnN} \marg{module} \marg{id} \meta{visibility}
-%   \cs{proxy_create_set:NnnN} \meta{str var} \marg{module} \marg{id} \meta{visibility}
+%   \cs{proxy_create:nnN} \Arg{module} \Arg{id} \meta{visibility}
+%   \cs{proxy_create_set:NnnN} \meta{str var} \Arg{module} \Arg{id} \meta{visibility}
 %  \end{syntax}
-%  Creates a global proxy object.
+% These commands are deprecated because proxies should be global and public. Use instead \cs{proxy_create:nn}, \cs{proxy_create_set:Nnn} and \cs{proxy_create_gset:Nnn}.
 %
-% \fromV{1.0}
+% \fromVD{1.0}{2.3}
+% \end{function}
+%
+% \begin{function}{\proxy_create:nn, \proxy_create_set:Nnn, \proxy_create_gset:Nnn}
+%  \begin{syntax}
+%   \cs{proxy_create:nn} \Arg{module} \Arg{id}
+%   \cs{proxy_create_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
+%  \end{syntax}
+%  Creates a global public proxy object.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}{\proxy_push_member:nnn, \proxy_push_member:Vnn}
@@ -607,69 +628,67 @@
 %
 % \section{Examples}
 %  \subsection*{Example 1}
-% Create a public proxy with id \verb|myproxy| with the specification of a single member variable with name \verb|myvar| and type \verb|tl|, then set its address inside \cs{l_myproxy_str}.
+% Create a public proxy with id \verb|myproxy| with the specification of a single member variable with name \verb|myvar| and type \verb|tl|, then set its address inside \cs{g_myproxy_str}.
 %
 % \begin{verbatim}
-% \str_new:N \l_myproxy_str
-% \proxy_create_set:NnnN \l_myproxy_str { example }{ myproxy }
-%   \c_object_public_str
-% \proxy_push_member:Vnn \l_myproxy_str { myvar }{ tl }
+% \str_new:N \g_myproxy_str
+% \proxy_create_gset:Nnn \g_myproxy_str { example }{ myproxy }
+% \proxy_push_member:Vnn \g_myproxy_str { myvar }{ tl }
 % \end{verbatim}
 %
 % Then create a new object with name \verb|myobj| with that proxy, assign then token list \verb|\c_dollar_str{} ~ dollar ~ \c_dollar_str{}| to \verb|myvar| and then print it.
 %
 % \begin{verbatim}
-% \str_new:N \l_myobj_str
-% \object_create_set:NVnnNN \l_myobj_str \l_myproxy_str
-%   { example }{ myobj } \c_object_local_str \c_object_public_str
-% \tl_set:cn
+% \str_new:N \g_myobj_str
+% \object_create_gset:NVnn \g_myobj_str \g_myproxy_str
+%   { example }{ myobj }
+% \tl_gset:cn
 %   {
-%     \object_member_adr:Vn \l_myobj_str { myvar }
+%     \object_member_adr:Vn \g_myobj_str { myvar }
 %   }
 %   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \l_myobj_str { myvar }
+% \object_member_use:Vn \g_myobj_str { myvar }
 % \end{verbatim}
 %
 % Output: \ExplSyntaxOn
-% \str_new:N \l_myproxy_str
-% \proxy_create_set:NnnN \l_myproxy_str { example }{ myproxy }
-%   \c_object_public_str
-% \proxy_push_member:Vnn \l_myproxy_str { myvar }{ tl }
-% \str_new:N \l_myobj_str
-% \object_create_set:NVnnNN \l_myobj_str \l_myproxy_str
-%   { example }{ myobj } \c_object_local_str \c_object_public_str
-% \tl_set:cn
+% \str_new:N \g_myproxy_str
+% \proxy_create_gset:Nnn \g_myproxy_str { example }{ myproxy }
+% \proxy_push_member:Vnn \g_myproxy_str { myvar }{ tl }
+% \str_new:N \g_myobj_str
+% \object_create_gset:NVnn \g_myobj_str \g_myproxy_str
+%   { example }{ myobj }
+% \tl_gset:cn
 %   {
-%     \object_member_adr:Vn \l_myobj_str { myvar }
+%     \object_member_adr:Vn \g_myobj_str { myvar }
 %   }
 %   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \l_myobj_str { myvar }
+% \object_member_use:Vn \g_myobj_str { myvar }
 % \ExplSyntaxOff
 %
 % If you don't want to specify an object identifier you can also do
 %
 % \begin{verbatim}
-% \int_new:N \l_intc_int
-% \object_allocate_incr:NNVnNN \l_myobj_str \l_intc_int \l_myproxy_str
+% \int_new:N \g_intc_int
+% \object_gallocate_gincr:NNVnNN \g_myobj_str \g_intc_int \g_myproxy_str
 %   { example } \c_object_local_str \c_object_public_str
-% \tl_set:cn
+% \tl_gset:cn
 %   {
-%     \object_member_adr:Vn \l_myobj_str { myvar }
+%     \object_member_adr:Vn \g_myobj_str { myvar }
 %   }
 %   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \l_myobj_str { myvar }
+% \object_member_use:Vn \g_myobj_str { myvar }
 % \end{verbatim}
 %
 % Output: \ExplSyntaxOn
-% \int_new:N \l_intc_int
-% \object_allocate_incr:NNVnNN \l_myobj_str \l_intc_int \l_myproxy_str
+% \int_new:N \g_intc_int
+% \object_gallocate_gincr:NNVnNN \g_myobj_str \g_intc_int \g_myproxy_str
 %   { example } \c_object_local_str \c_object_public_str
-% \tl_set:cn
+% \tl_gset:cn
 %   {
-%     \object_member_adr:Vn \l_myobj_str { myvar }
+%     \object_member_adr:Vn \g_myobj_str { myvar }
 %   }
 %   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \l_myobj_str { myvar }
+% \object_member_use:Vn \g_myobj_str { myvar }
 % \ExplSyntaxOff
 %
 % \subsection*{Example 2}
@@ -677,7 +696,7 @@
 %
 % Internal proxy
 % \begin{verbatim}
-%  \proxy_create:nnN{ mymod }{ INT } \c_object_public_str
+%  \proxy_create:nn{ mymod }{ INT }
 %  \proxy_push_member:nnn
 %    {
 %      \object_address:nn{ mymod }{ INT }
@@ -686,7 +705,7 @@
 %
 % Container proxy
 % \begin{verbatim}
-%  \proxy_create:nnN{ mymod }{ EXT } \c_object_public_str
+%  \proxy_create:nn{ mymod }{ EXT }
 %  \proxy_push_embedded:nnn
 %    {
 %      \object_address:nn{ mymod }{ EXT }
@@ -721,13 +740,13 @@
 %    }{ var }
 % \end{verbatim}
 % Output: \ExplSyntaxOn
-%  \proxy_create:nnN{ mymod }{ INT } \c_object_public_str
+%  \proxy_create:nn{ mymod }{ INT }
 %  \proxy_push_member:nnn
 %    {
 %      \object_address:nn{ mymod }{ INT }
 %    }{ var }{ tl }
 %
-%  \proxy_create:nnN{ mymod }{ EXT } \c_object_public_str
+%  \proxy_create:nn{ mymod }{ EXT }
 %  \proxy_push_embedded:nnn
 %    {
 %      \object_address:nn{ mymod }{ EXT }
@@ -781,8 +800,7 @@
 %   {
 %     \object_if_exist:nF {\node_address:n { #1 } }
 %       {
-%         \proxy_create:nnN { linklist }{ node - #1 }
-%           \c_object_public_str
+%         \proxy_create:nn { linklist }{ node - #1 }
 %         \proxy_push_member:nnn {\node_address:n { #1 } }
 %           { next }{ str }
 %         \proxy_push_member:nnn {\node_address:n { #1 } }
@@ -806,6 +824,21 @@
 %
 %    \begin{macrocode}
 %<@@=rawobjects>
+%    \end{macrocode}
+%
+% Deprecation message
+%    \begin{macrocode}
+
+\msg_new:nnn { rawobjects }{ deprecate }
+  {
+    Command ~ #1 ~ is ~ deprecated. ~ Use ~ instead ~ #2
+  }
+
+\cs_new_protected:Nn \@@_launch_deprecate:NN
+  {
+    \msg_warning:nnnn{ rawobjects }{ deprecate }{ #1 }{ #2 }
+  }
+
 %    \end{macrocode}
 %
 %\begin{variable}{\c_object_local_str, \c_object_global_str, \c_object_public_str, \c_object_private_str}
@@ -1747,7 +1780,7 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \embedded_create:nnn}
+% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \object_create:nnnN, \object_create_set:NnnnN, \object_create_gset:NnnnN, \object_create:nnn, \object_create_set:Nnnn, \object_create_gset:Nnnn, \embedded_create:nnn}
 % Creates an object from a proxy.
 %    \begin{macrocode}
 
@@ -1853,6 +1886,54 @@
 
 \cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
 \cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
+
+
+
+\cs_new_protected:Nn \object_create:nnnN
+  {
+    \object_create:nnnNN { #1 }{ #2 }{ #3 } #4 \c_object_public_str
+  }
+
+\cs_generate_variant:Nn \object_create:nnnN { VnnN }
+
+\cs_new_protected:Nn \object_create_set:NnnnN
+  {
+    \object_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
+  }
+
+\cs_new_protected:Nn \object_create_gset:NnnnN
+  {
+    \object_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
+  }
+
+\cs_generate_variant:Nn \object_create_set:NnnnN { NVnnN }
+\cs_generate_variant:Nn \object_create_gset:NnnnN { NVnnN }
+
+\cs_new_protected:Nn \object_create:nnn
+  {
+    \object_create:nnnNN { #1 }{ #2 }{ #3 }
+      \c_object_global_str \c_object_public_str
+  }
+
+\cs_generate_variant:Nn \object_create:nnn { Vnn }
+
+\cs_new_protected:Nn \object_create_set:Nnnn
+  {
+    \object_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 }
+      \c_object_global_str \c_object_public_str
+  }
+
+\cs_new_protected:Nn \object_create_gset:Nnnn
+  {
+    \object_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 }
+      \c_object_global_str \c_object_public_str
+  }
+
+\cs_generate_variant:Nn \object_create_set:Nnnn { NVnn }
+\cs_generate_variant:Nn \object_create_gset:Nnnn { NVnn }
+
+
+
   
 \cs_new_protected:Nn \embedded_create:nnn
   {
@@ -1889,24 +1970,47 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
+%\begin{macro}{\proxy_create:nn, \proxy_create_set:Nnn, \proxy_create_gset:Nnn}
 %Creates a new proxy object
 %    \begin{macrocode}
 
+\cs_new_protected:Nn \proxy_create:nn
+  {
+    \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
+      \c_object_global_str \c_object_public_str
+  }
+
+\cs_new_protected:Nn \proxy_create_set:Nnn
+  {
+    \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+      \c_object_global_str \c_object_public_str
+  }
+
+\cs_new_protected:Nn \proxy_create_gset:Nnn
+  {
+    \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+      \c_object_global_str \c_object_public_str
+  }
+
+
+
 \cs_new_protected:Nn \proxy_create:nnN
   {
+    \@@_launch_deprecate:NN \proxy_create:nnN \proxy_create:nn
     \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
       \c_object_global_str #3
   }
 
 \cs_new_protected:Nn \proxy_create_set:NnnN
   {
+    \@@_launch_deprecate:NN \proxy_create_set:NnnN \proxy_create_set:Nnn
     \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str #4
   }
 
 \cs_new_protected:Nn \proxy_create_gset:NnnN
   {
+    \@@_launch_deprecate:NN \proxy_create_gset:NnnN \proxy_create_gset:Nnn
     \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str #4
   }
