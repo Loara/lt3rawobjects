@@ -59,12 +59,20 @@
 % This packages follows the \href{https://semver.org/}{SemVer} specification (\texttt{https://semver.org/}). In particular any major version update (for example from \texttt{1.2} to \texttt{2.0}) may introduce imcompatible changes and so it's not advisable to work with different packages that require different major versions of \thpkg. Instead changes introduced in minor and patch version updates are always backward compatible, and any withdrawn function is declared deprecated instead of being removed.
 %
 % \section{Objects and proxies}
-% Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. In \thpkg\ objects are collections of
+% In this package we call \emph{pure address} any string without spaces (so a sequence of tokens with category code 12 ``other'') that uniquely identifies a resource or an entity. An example of expanded address if the name of a control sequence \tn{\meta{name}} that can obtained by full expanding \cs{cs_to_str:N} \tn{\meta{name}}. Instead an \emph{expanded address} is a token list that contains only tokens with category code 11 (letters) or 12 (other) that can be directly converted to a pure address with a simple call to \cs{tl_to_str:n} or by assigning it to a string variable.
+%
+% An \emph{address} is instead a fully expandable token list which full expansion is an expanded address where full expansion means the expansion process performed inside |c|, |x| and |e| parameters. We also require that any address should be fully expandable according to the rules of |x| and |e| parameter types with same results, and the name of control sequence resulting from a |c|-type expansion of such address must be equal to its full expansion. For these reasons addresses should not contain parameter tokens like |#| (because they're threat differently by |x| and |e|) or control sequences that prevents expansion like \cs{exp_not:n} (because they're ignored by |c| but not by |x| and |e|). In particular |\tl_to_str:n{ ## }| is \emph{not} a valid address (assuming standard category codes).
+%
+%
+% A \emph{pointer} is just a \LaTeX3 string variable that holds a pure address. We don't enforce to use |str| or any special suffix to denote pointers so you're free to use |str| or a custom \meta{type} as suffix for your pointers in order to distinguish between them according to their type.
+%
+% Usually an object in programming languages can be seen as a collection of variables (organized in different ways depending on the chosen language) treated as part of a single entity. In \thpkg\ objects are collections of several entities:
 % \begin{itemize}
 %   \item \LaTeX3 variables, called \emph{members};
+%   \item \LaTeX3 constants, called just \emph{constants};
 %   \item \LaTeX3 functions, called \emph{methods};
 %   \item generic control sequences, calles simply \emph{macros};
-%   \item other \emph{embedded objects}.
+%   \item other objects, called \emph{embedded objects}.
 % \end{itemize}
 % Both members and methods can be retrieved from a string representing the container object, that is the \emph{address} of the object and act like the address of a structure in C.
 %
