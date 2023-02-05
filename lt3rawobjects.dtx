@@ -840,7 +840,7 @@
 
 %    \end{macrocode}
 % \end{macro}
-
+%
 %\begin{variable}{\c_object_local_str, \c_object_global_str, \c_object_public_str, \c_object_private_str}
 %    \begin{macrocode}
 \str_const:Nn \c_object_local_str {l}
@@ -1147,6 +1147,93 @@
 %    \end{macrocode}
 %\end{macro}
 %
+% The first argument is the new function name without argument. The second one is the function name you'll use, here \#1 is the member type and \#2 is equal to |g| if the object is global. The third one are the argument of the second function without the first N.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \@@_generator_mem:nnn
+  {
+    \cs_new:cn
+      {
+        rwobj-aux_ #1 : nn
+      }
+      {
+        \use:c{ #2 : c #3 }
+      }
+    \cs_new:cpn {#1 : nnn #3} ##1##2##3
+      {
+        \use:c
+          {
+            rwobj-aux_ #1 : nn
+          }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3 }
+
+    \cs_new:cpn { #1 : nn #3 } ##1##2
+      {
+        \use:c{ #1 : nnv #3 }
+          { ##1 }{ ##2 }
+          {
+            \object_rcmember_adr:nnn
+              { ##1 }{ ##2 _ type }{ str }
+          }
+      }
+
+    \cs_generate_variant:cn { #1 : nn #3 }{ Vn #3 }
+  }
+
+
+\msg_new:nnn{ rawobjects }{ nonew }{ Unknown ~ function ~ #1 }
+
+\cs_new_protected:Nn \@@_generator_mem_protected:nnn
+  {
+    \cs_new_protected:cn
+      {
+        rwobj-aux_ #1 : nn
+      }
+      {
+        \cs_if_exist_use:cF{ #2 : c #3 }
+        {
+          \msg_error:nnx{ rawobjects }{ nonew }{ #2 :c #3 }
+        }
+      }
+    \cs_new_protected:cpn {#1 : nnn #3} ##1##2##3
+      {
+        \use:c
+          {
+            rwobj-aux_ #1 : nn
+          }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3 }
+
+    \cs_new_protected:cpn { #1 : nn #3 } ##1##2
+      {
+        \use:c{ #1 : nnv #3 }
+          { ##1 }{ ##2 }
+          {
+            \object_rcmember_adr:nnn
+              { ##1 }{ ##2 _ type }{ str }
+          }
+      }
+
+    \cs_generate_variant:cn { #1 : nn #3 }{ Vn #3 }
+  }
+
+%    \end{macrocode}
+%
 %\begin{macro}{\object_member_type:nn}
 %Deduce the member type from the generating proxy.
 %    \begin{macrocode}
@@ -1243,16 +1330,12 @@
 %Creates a new member variable
 %    \begin{macrocode}
 
-\msg_new:nnnn{ rawobjects }{ nonew }{ Invalid ~ basic ~ type }{ Basic ~ type ~ #1 ~ doesn't ~have ~ function ~ #1_new:c }
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
-    \cs_if_exist_use:cTF { #3 _ new:c }
+    \cs_if_exist_use:cT { #3 _ new:c }
       {
         { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
-      }
-      {
-        \msg_error:nnn{ rawobjects }{ nonew }{ #3 }
       }
   }
   
@@ -1265,57 +1348,18 @@
 %Uses a member variable
 %    \begin{macrocode}
 
-\cs_new:Nn \object_member_use:nnn
-  {
-    \cs_if_exist_use:cT { #3 _ use:c }
-      {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
-      }
-  }
+\@@_generator_mem:nnn {object_member_use}{ #1_use }{}
 
-\cs_new:Nn \object_member_use:nn
-  {
-    \object_member_use:nnv { #1 }{ #2 }
-      {
-        \object_rcmember_adr:nnn { #1 }
-          { #2 _ type }{ str }
-      }
-  }
-
-\cs_generate_variant:Nn \object_member_use:nnn { Vnn, vnn, nnv }
-\cs_generate_variant:Nn \object_member_use:nn { Vn }
+\cs_generate_variant:Nn \object_member_use:nnn {vnn}
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_set:nnnn, \object_member_set_eq:nnn}
+%\begin{macro}{\object_member_set:nnnn, \object_member_set:nnn}
 % Set the value a member.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_member_set:nnnn
-  {
-    \cs_if_exist_use:cT
-      {
-        #3 _ \@@_scope_pfx_cl:n{ #1 } set:cn
-      }
-      {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
-        { #4 }
-      }
-  }
-
-\cs_generate_variant:Nn \object_member_set:nnnn { Vnnn, nnvn }
-
-\cs_new_protected:Nn \object_member_set:nnn
-  {
-    \object_member_set:nnvn { #1 }{ #2 }
-      {
-        \object_rcmember_adr:nnn { #1 }
-          { #2 _ type }{ str }
-      } { #3 }
-  }
-
-\cs_generate_variant:Nn \object_member_set:nnn { Vnn }
+\@@_generator_mem:nnn {object_member_set}{ #1_#2 set }{n}
 
 %    \end{macrocode}
 %\end{macro}
@@ -1324,30 +1368,11 @@
 % Make a member equal to another variable.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_member_set_eq:nnnN
-  {
-    \@@_force_scope:n { #1 }
-    \cs_if_exist_use:cT
-      {
-        #3 _ \@@_scope_pfx:n { #1 } set _ eq:cN
-      }
-      {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } } #4
-      }
-  }
+\@@_generator_mem_protected:nnn { object_member_set_eq }{ #1 _ #2 set_eq }{ N }
 
-\cs_generate_variant:Nn \object_member_set_eq:nnnN { VnnN, nnnc, Vnnc, nnvN }
+\cs_generate_variant:Nn \object_member_set_eq:nnnN { nnnc, Vnnc }
 
-\cs_new_protected:Nn \object_member_set_eq:nnN
-  {
-    \object_member_set_eq:nnvN { #1 }{ #2 }
-      {
-        \object_rcmember_adr:nnn { #1 }
-          { #2 _ type }{ str }
-      } #3
-  }
-
-\cs_generate_variant:Nn \object_member_set_eq:nnN { VnN, nnc, Vnc }
+\cs_generate_variant:Nn \object_member_set_eq:nnN { nnc, Vnc }
 
 %    \end{macrocode}
 %\end{macro}
@@ -1386,6 +1411,60 @@
 \cs_generate_variant:Nn \object_rcmember_adr:nnn { Vnn }
 %    \end{macrocode}
 %\end{macro}
+%
+% The first argument is the new function name without argument. The second one is the function name you'll use, here \#1 is the constant type. The third one are the argument of the second function without the first N.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \@@_generator_ncmem:nnn
+  {
+    \cs_new:cn
+      {
+        rwobj-aux_ #1 : n
+      }
+      {
+        \use:c{ #2 : c #3 }
+      }
+    \cs_new:cpn {#1 : nnn #3} ##1##2##3
+      {
+        \use:c
+          {
+            rwobj-aux_ #1 : n
+          }
+          { ##3 }
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3 }
+  }
+
+\cs_new_protected:Nn \@@_generator_ncmem_protected:nnn
+  {
+    \cs_new_protected:cn
+      {
+        rwobj-aux_ #1 : n
+      }
+      {
+        \cs_if_exist_use:cF{ #2 : c #3 }
+          {
+            \msg_error:nnx{ rawobjects }{ nonew }{ #2 :c #3 }
+          }
+      }
+    \cs_new_protected:cpn {#1 : nnn #3} ##1##2##3
+      {
+        \use:c
+          {
+            rwobj-aux_ #1 : n
+          }
+          { ##3 }
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3 }
+  }
+
+%    \end{macrocode}
 %
 % \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn}
 % Tests if the specified member constant exists.
@@ -1431,13 +1510,7 @@
 % Uses a near/remote constant.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_ncmember_use:nnn
-  {
-    \cs_if_exist_use:cT { #3 _ use:c }
-      {
-        { \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 } }
-      }
-  }
+\@@_generator_ncmem:nnn{ object_ncmember_use }{ #1_use}{}
 
 \cs_new:Nn \object_rcmember_use:nnn
   {
@@ -1447,7 +1520,6 @@
       }
   }
 
-\cs_generate_variant:Nn \object_ncmember_use:nnn { Vnn }
 \cs_generate_variant:Nn \object_rcmember_use:nnn { Vnn }
 
 %    \end{macrocode}
@@ -1457,14 +1529,7 @@
 % Creates a constant variable, use with caution
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_newconst:nnnn
-  {
-    \use:c { #3 _ const:cn }
-      {
-        \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 }
-      }
-      { #4 }
-  }
+\@@_generator_ncmem_protected:nnn { object_newconst }{ #1 _ const }{n}
 
 %    \end{macrocode}
 % \end{macro}
