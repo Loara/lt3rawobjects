@@ -22,16 +22,20 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2022/12/27 2.3-beta-2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2023/02/16 2.3-beta-2 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2022/12/27}{ 2.3-beta-2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2023/02/16}{ 2.3-beta-2 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
 \usepackage{xparse}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
 \begin{document}
+
+
 \DocInput{lt3rawobjects.dtx}
 \end{document}
 %</driver>
@@ -39,9 +43,13 @@
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
 % \NewDocumentCommand{\thvsn}{}{2.3-beta-2}
-% \NewDocumentCommand{\thdta}{}{2022/12/27}
+% \NewDocumentCommand{\thdta}{}{2023/02/16}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 % \NewDocumentCommand{\fromVD}{ m m }{{\ttfamily From: #1}\par {\ttfamily Deprecated in: #2}}
+%
+% \NewDocumentCommand{\simfun}{m m}{\textcolor{blue}{\textbackslash #1}\textcolor{purple}{:#2}}
+% \NewDocumentCommand{\simvar}{m}{\textcolor{violet}{\textbackslash #1}}
+% \DefineVerbatimEnvironment{Coding}{Verbatim}{numbers=left, frame=single, commandchars={![]}}
 %
 % \title{The \pkg{lt3rawobjects} package}
 %   \author{Paolo De Donato}
@@ -93,49 +101,47 @@
 % Objects could be declared \emph{local} or \emph{global}. The only difference between a local and a global object is the scope of their members (that are \LaTeX3 variables). You should always create global object unless you specifically need local members.
 %
 % \subsection{Constants}
-% Constants in an object could be \emph{near} and \emph{remote}. A near constant is just a constant declared in such object and could be referred only by it, instead a remote constant is declared inside its generator and can be referred by any object created from that proxy, thus it's shared between all the generated objects.
+% Constants in an object could be \emph{near} and \emph{remote}. A near constant is just a constant declared in such object and could be referred only by it, instead a remote constant is declared inside its generator and can be referred by any object created from that proxy, thus it's shared between all the generated objects. Functions in this library that work with near constants usually contain |ncmember| in their names, whereas those involving remore constants contain |rcmember| instead.
 %
-% Both near and remote constants are created in the same way, however remote constant should be created in a proxy whereas near contant are created directly in the target object.
+% Both near and remote constants are created in the same way via the |_newconst| functions, however remote constant should be created in a proxy whereas near contant are created directly in the target object.
 %
 % \subsection{Methods}
-% Methods are \LaTeX3 functions that can't be changed once they're created. Like constant, methods could be near or remote.
+% Methods are \LaTeX3 functions that can't be changed once they're created. Like constant, methods could be near or remote. Moreover, functions in this library dealing with near methods contain |ncmethod| whereas those dealing with remote methods contain |rcmethod| in their names. 
 %
 % \subsection{Members}
-% Members are just mutable \LaTeX3 variables. Members can be manually created inside objects or can be automatically created during object creation if their definitions are stored inside the generating proxy through the \cs{proxy_push_member} function. These members automatically created by proxies are called \emph{tracked} since the generator knows about them. Moreover, you don't need to specify the type of a tracked member since it can be inferred from the generator and the |assign| functions automatically copy all the tracked members in the new object.
+% Members are just mutable \LaTeX3 variables. You can manually create new members in already existing objects or you can put the definition of a new member directly in a proxy with the \cs{proxy_push_member} functions. In this way all the objects created with that proxy will have a member according to such definition. If the object is local/global then all its members are automatically local/global.
 %
-% If the object is local/global then all its members are automatically local/global.
+% A member can be \emph{tracked} or \emph{not tracked}. A tracked member have additional information, like its type, stored in the object or in its generator. In particular, you don't need to specify the type of a tracked member and some functions in \thpkg\ are able to retrieve the required information. All the members declared in the generator are automatically tracked.
 %
-% \section{Put objects inside objects}
-% Sometimes it's necessary to include other objects inside an object, and since objects are structured data types you can't put them directly inside a variable. However \thpkg\ provides some workarounds that allows you to include objects inside other objects, each with its own advantages and disadvantages.
+% \section{Object members}
+% Sometimes it's necessary to store an instance of an object inside another object, since objects are structured entities that can't be entirely contained in a single \LaTeX3 variable you can't just put it inside a member or constant. However, there are some very easy workarounds to insert object instances as items of other objects. 
+% 
+% For example, we're in module |MOD| and we have an object with id |PAR|. We want to provide |PAR| with an item that holds an instance of an object created by proxy |PRX|. We can achieve this in three ways:
 %
-% In the following examples we're in module |mymod| and we want to put inside object |A| another object created with proxy |prx|.  
-%
-% \subsection{Put a pointer variable} 
-% A simple solution is creating that object outside |A| with \cs{object_create}
-% \begin{verbatim}
-%  \object_create:nnnNN 
-%    { \object_address:nn{ mymod }{ prx } }{ mymod }{ B } ....
-% \end{verbatim} 
-% and then creating a pointer variable inside |A| (usually of type |tl| or |str|) holding the newly created address:
-% \begin{verbatim}
-%  \object_new_member:nnn
+% \subsection{Create a pointer member} 
+% We first create a new object from |PRX|
+% \begin{Coding}
+%  !simfun[object_create][nnn] 
+%    { !simfun[object_address][nn] { MOD }{ PRX } }{ MOD }{ INST }
+% \end{Coding} 
+% then we create an |str| member in |PAR| that will hold the address of the newly created object.
+% \begin{Coding}
+%  !simfun[object_new_member][nnn]
 %    {
-%      \object_address:nn{ mymod }{ A }
-%    }{ pointer }{ tl }
+%      !simfun[object_address][nn] { MOD }{ PAR }
+%    }{ pointer }{ str }
 %
-%  \tl_(g)set:cn
+%  !simfun[object_member_set][nnnx]
 %    {
-%      \object_new_member:nnn
-%        {
-%          \object_address:nn{ mymod }{ A }
-%        }{ pointer }{ tl }
+%      !simfun[object_address][nn] { MOD }{ PAR }
 %    }
+%    { pointer }{ str }
 %    {
-%      \object_address:nn{ mymod }{ B }
+%      !simfun[object_address][nn] { MOD }{ INST }
 %    }
+% \end{Coding}
 %
-% \end{verbatim}
-% you can the access the pointed object by calling \cs{object_member_use} on |pointer| member.
+% You can then get the pointed object by just using the |pointer| member. Notice that you're not force to use the |str| type for the pointer member, but you can also use |tl| or any custom \meta{type}. In the latter case be sure to at least define the following functions: \cs{\meta{type}_new:c}, \cs{\meta{type}_(g)set:cn} and \cs{\meta{type}_use:c}.
 %
 % \subsubsection*{Advantages}
 % \begin{itemize}
@@ -147,43 +153,42 @@
 % \subsubsection*{Disadvantages}
 % \begin{itemize}
 %  \item You must manually create both the objects and link them;
-%  \item creating objects also creates additional hidden variables, taking so (little) additional space.
+%  \item if you forgot to properly initialize the pointer member it'll contain the "null address" (the empty string). Despite other programming languages the null address is not treated specially by \thpkg, which makes finding null pointer errors more difficult. 
 % \end{itemize}
 %
 % \subsection{Clone the inner structure}
-% Instead of referring a complete object you can just clone the inner structure of |prx| and put inside |A|. For example if |prx| declares member |x| of type |str| and member |y| of type |int| then you can do
-% \begin{verbatim}
-%  \object_new_member:nnn
+% Anoter solution is to copy the members declared in |PRX| to |PAR|. For example,  if in |PRX| are declared a member with name |x| and type |str|, and a member with name |y| and type |int| then
+% \begin{Coding}
+%  !simfun[object_new_member][nnn]
 %    {
-%      \object_address:nn{ mymod }{ A }
+%      !simfun[object_address][nn] { MOD }{ PAR }
 %    }{ prx-x }{ str }
-%  \object_new_member:nnn
+%  !simfun[object_new_member][nnn]
 %    {
-%      \object_address:nn{ mymod }{ A }
+%      !simfun[object_address][nn] { MOD }{ PAR }
 %    }{ prx-y }{ int } 
-% \end{verbatim} 
-% and then use |prx-x|, |prx-y| as normal members of |A|.
+% \end{Coding}
 %
 % \subsubsection*{Advantages}
 % \begin{itemize}
-%  \item Simple and no additional function needed to create and manage included objects;
-%  \item you can put these specifications inside a proxy so that every object created with it will  have the required members/methods;
-%  \item no hidden variable created, lowest overhead among the proposed solutions.
+%  \item Very simple;
+%  \item no hidden item is created, this procedure has the lowest overhead among all the proposed solutions here.
 % \end{itemize}
 % 
 % \subsubsection*{Disadvantages}
 % \begin{itemize}
-%  \item Cloning the inner structure doesn't create any object, so you don't have any object address nor you can share the included ``object'' unless you share the container object too.
+%  \item If you need the original instance of the stored object then you should create a temporary object and manually copy each item to it. Don't use this method if you later need to retrieve the stored object entirely and not only its items.
 % \end{itemize}
 %
 % \subsection{Embedded objects}
 % From \thpkg\ \texttt{2.2} you can put \emph{embedded objects} inside objects. Embedded objects are created with \cs{embedded_create} function 
-% \begin{verbatim}
-%  \embedded_create:nnn 
+% \begin{Coding}
+%  !simfun[embedded_create][nnn] 
 %    { 
-%      \object_address:nn{  mymod }{ A } 
-%    }{ prx }{ B }
-% \end{verbatim}
+%      !simfun[object_address][nn] { MOD }{ PAR } 
+%    }
+%    { PRX }{ emb }
+% \end{Coding}
 % and addresses of emmbedded objects can be retrieved with function \cs{object_embedded_adr}. You can also put the definition of embedded objects in a proxy by using \cs{proxy_push_embedded} just like \cs{proxy_push_member}.
 %
 % \subsubsection*{Advantages}
@@ -289,7 +294,7 @@
 %   \cs{object_member_adr:nnn} \marg{address} \marg{member name} \marg{member type}
 %   \cs{object_member_adr:nn} \marg{address} \marg{member name}
 %  \end{syntax}
-%  Fully expands to the address of specified member variable. If type is not specified it'll be retrieved from the generator proxy, but only if member is specified in the generator.
+%  Fully expands to the address of specified member variable. If the member is tracked then you can omit the type field.
 %
 % \fromV{1.0}
 % \end{function}
@@ -301,7 +306,7 @@
 %   \cs{object_member_if_exist_p:nn} \Arg{address} \Arg{member name}
 %   \cs{object_member_if_exist:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
 %  \end{syntax}
-%  Tests if the specified member exist.
+%  Tests if the specified member exist. The |:nn| version returns |true| if and only if the specified member exists and it is a tracked member.
 %
 % \fromV{2.0}
 % \end{function}
@@ -354,6 +359,7 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \subsection{Constants}
 % \begin{function}[rEXP]{\object_ncmember_adr:nnn, \object_ncmember_adr:Vnn, \object_ncmember_adr:vnn, \object_rcmember_adr:nnn, \object_rcmember_adr:Vnn}
 %  \begin{syntax}
 %   \cs{object_ncmember_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
@@ -383,7 +389,6 @@
 % \end{function}
 %
 % \subsection{Methods}
-% Currentlu only constant methods (near and remote) are implemented in \thpkg\ as explained before.
 %
 % \begin{function}[rEXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn}
 %  \begin{syntax}
@@ -426,8 +431,7 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \subsection{Constant member creation}
-% Unlike normal variables, constant variables in \LaTeX3 are created in different ways depending on the specified type. So we dedicate a new section only to collect some of these fuinctions readapted for near constants (remote constants are simply near constants created on the generator proxy).
+% \subsection{Creation of constants}
 %
 % \begin{function}{\object_newconst_tl:nnn, \object_newconst_tl:Vnn, \object_newconst_str:nnn, \object_newconst_str:Vnn, \object_newconst_int:nnn, \object_newconst_int:Vnn, \object_newconst_clist:nnn, \object_newconst_clist:Vnn, \object_newconst_dim:nnn, \object_newconst_dim:Vnn, \object_newconst_skip:nnn, \object_newconst_skip:Vnn, \object_newconst_fp:nnn, \object_newconst_fp:Vnn}
 %  \begin{syntax}
@@ -463,13 +467,12 @@
 %  \begin{syntax}
 %   \cs{object_newconst:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
 %  \end{syntax}
-%  Expands to \cs{\meta{type}_const:cn} \marg{address} \marg{value}, use it if you need to create simple constants with custom types.
+%  Invokes \cs{\meta{type}_const:cn} to create the specified constant.
 %
 %  \fromV{2.1}
 % \end{function}
 %
 % \subsection{Macros}
-% 
 % \begin{function}[rEXP]{\object_macro_adr:nn, \object_macro_adr:Vn}
 %  \begin{syntax}
 %   \cs{object_macro_adr:nn} \Arg{address} \Arg{macro name}
@@ -490,7 +493,7 @@
 %
 % There isn't any standard function to create macros, and macro declarations can't be inserted in a |proxy| object. In fact a macro is just an unspecialized control sequence at the disposal of users that usually already know how to implement them. 
 %
-% \subsection{Proxy utilities and object creation}
+% \subsection{Proxies and object creation}
 %
 % \begin{function}[pTF]{\object_if_proxy:n, \object_if_proxy:V}
 %  \begin{syntax}
@@ -655,25 +658,25 @@
 %  \subsection*{Example 1}
 % Create a public proxy with id \verb|myproxy| with the specification of a single member variable with name \verb|myvar| and type \verb|tl|, then set its address inside \cs{g_myproxy_str}.
 %
-% \begin{verbatim}
-% \str_new:N \g_myproxy_str
-% \proxy_create_gset:Nnn \g_myproxy_str { example }{ myproxy }
-% \proxy_push_member:Vnn \g_myproxy_str { myvar }{ tl }
-% \end{verbatim}
+% \begin{Coding}
+% !simfun[str_new][N] !simvar[g_myproxy_str]
+% !simfun[proxy_create_gset][Nnn] !simvar[g_myproxy_str] { example }{ myproxy }
+% !simfun[proxy_push_member][Vnn] !simvar[g_myproxy_str] { myvar }{ tl }
+% \end{Coding}
 %
 % Then create a new object with name \verb|myobj| with that proxy, assign then token list \verb|\c_dollar_str{} ~ dollar ~ \c_dollar_str{}| to \verb|myvar| and then print it.
 %
-% \begin{verbatim}
-% \str_new:N \g_myobj_str
-% \object_create_gset:NVnn \g_myobj_str \g_myproxy_str
+% \begin{Coding}
+% !simfun[str_new][N] !simvar[g_myobj_str]
+% !simfun[object_create_gset][NVnn] !simvar[g_myobj_str] !simvar[g_myproxy_str]
 %   { example }{ myobj }
-% \tl_gset:cn
+% !simfun[tl_gset][cn]
 %   {
-%     \object_member_adr:Vn \g_myobj_str { myvar }
+%     !simfun[object_member_adr][Vn] !simvar[g_myobj_str] { myvar }
 %   }
-%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \g_myobj_str { myvar }
-% \end{verbatim}
+%   { !simvar[c_dollar_str]{} ~ dollar ~ !simvar[c_dollar_str]{} }
+% !simfun[object_member_use][Vn] !simvar[g_myobj_str] { myvar }
+% \end{Coding}
 %
 % Output: \ExplSyntaxOn
 % \str_new:N \g_myproxy_str
@@ -690,19 +693,19 @@
 % \object_member_use:Vn \g_myobj_str { myvar }
 % \ExplSyntaxOff
 %
-% If you don't want to specify an object identifier you can also do
+% You can also avoid to specify an object identify and use \cs{object_gallocate_gincr} instead:
 %
-% \begin{verbatim}
-% \int_new:N \g_intc_int
-% \object_gallocate_gincr:NNVnNN \g_myobj_str \g_intc_int \g_myproxy_str
-%   { example } \c_object_local_str \c_object_public_str
-% \tl_gset:cn
+% \begin{Coding}
+% !simfun[int_new][N] !simvar[g_intc_int]
+% !simfun[object_gallocate_gincr][NNVnNN] !simvar[g_myobj_str] !simvar[g_intc_int] !simvar[g_myproxy_str]
+%   { example } !simvar[c_object_local_str] !simvar[c_object_public_str]
+% !simfun[tl_gset][cn]
 %   {
-%     \object_member_adr:Vn \g_myobj_str { myvar }
+%     !simfun[object_member_adr][Vn] !simvar[g_myobj_str] { myvar }
 %   }
-%   { \c_dollar_str{} ~ dollar ~ \c_dollar_str{} }
-% \object_member_use:Vn \g_myobj_str { myvar }
-% \end{verbatim}
+%   { !simvar[c_dollar_str]{} ~ dollar ~ !simvar[c_dollar_str]{} }
+% !simfun[object_member_use][Vn] !simvar[g_myobj_str] { myvar }
+% \end{Coding}
 %
 % Output: \ExplSyntaxOn
 % \int_new:N \g_intc_int
@@ -720,50 +723,50 @@
 % In this example we create a proxy object with an embedded object inside.
 %
 % Internal proxy
-% \begin{verbatim}
-%  \proxy_create:nn{ mymod }{ INT }
-%  \proxy_push_member:nnn
+% \begin{Coding}
+%  !simfun[proxy_create][nn] { mymod }{ INT }
+%  !simfun[proxy_push_member][nnn]
 %    {
-%      \object_address:nn{ mymod }{ INT }
+%      !simfun[object_address][nn] { mymod }{ INT }
 %    }{ var }{ tl }
-% \end{verbatim}
+% \end{Coding}
 %
 % Container proxy
-% \begin{verbatim}
-%  \proxy_create:nn{ mymod }{ EXT }
-%  \proxy_push_embedded:nnn
+% \begin{Coding}
+%  !simfun[proxy_create][nn] { mymod }{ EXT }
+%  !simfun[proxy_push_embedded][nnn]
 %    {
-%      \object_address:nn{ mymod }{ EXT }
+%      !simfun[object_address][nn] { mymod }{ EXT }
 %    }
 %    { emb }
 %    {
-%      \object_address:nn{ mymod }{ INT }
+%      !simfun[object_address][nn] { mymod }{ INT }
 %    }
-% \end{verbatim}
+% \end{Coding}
 %
 % Now we create a new object from proxy |EXT|. It'll contain an embedded object created with |INT| proxy:
-% \begin{verbatim}
-%  \str_new:N \g_EXTobj_str
-%  \int_new:N \g_intcount_int
-%  \object_gallocate_gincr:NNnnNN
-%    \g_EXTobj_str \g_intcount_int
+% \begin{Coding}
+%  !simfun[str_new][N] !simvar[g_EXTobj_str]
+%  !simfun[int_new][N] !simvar[g_intcount_int]
+%  !simfun[object_gallocate_gincr][NNnnNN]
+%    !simvar[g_EXTobj_str] !simvar[g_intcount_int]
 %    {
-%      \object_address:nn{ mymod }{ EXT }
+%      !simfun[object_address][nn] { mymod }{ EXT }
 %    }
 %    { mymod }
-%    \c_object_local_str \c_object_public_str
-% \end{verbatim}
+%    !simvar[c_object_local_str] !simvar[c_object_public_str]
+% \end{Coding}
 % and use the embedded object in the following way:
-% \begin{verbatim}
-%  \object_member_set:nnn
+% \begin{Coding}
+%  !simfun[object_member_set][nnn]
 %    {
-%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%      !simfun[object_embedded_adr][Vn] !simvar[g_EXTobj_str] { emb }
 %    }{ var }{ Hi }
-%  \object_member_use:nn
+%  !simfun[object_member_use][nn]
 %    {
-%      \object_embedded_adr:Vn \g_EXTobj_str { emb }
+%      !simfun[object_embedded_adr][Vn] !simvar[g_EXTobj_str] { emb }
 %    }{ var }
-% \end{verbatim}
+% \end{Coding}
 % Output: \ExplSyntaxOn
 %  \proxy_create:nn{ mymod }{ INT }
 %  \proxy_push_member:nnn
