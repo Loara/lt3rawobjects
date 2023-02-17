@@ -299,23 +299,31 @@
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn, \object_member_if_exist:nn, \object_member_if_exist:Vn}
+% \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn}
 %  \begin{syntax}
 %   \cs{object_member_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
 %   \cs{object_member_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
-%   \cs{object_member_if_exist_p:nn} \Arg{address} \Arg{member name}
-%   \cs{object_member_if_exist:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
 %  \end{syntax}
-%  Tests if the specified member exist. The |:nn| version returns |true| if and only if the specified member exists and it is a tracked member.
+%  Tests if the specified member exist.
 %
 % \fromV{2.0}
+% \end{function}
+%
+% \begin{function}[pTF]{\object_member_if_tracked:nn, \object_member_if_tracked:Vn}
+%  \begin{syntax}
+%   \cs{object_member_if_tracked_p:nn} \Arg{address} \Arg{member name}
+%   \cs{object_member_if_tracked:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
+%  \end{syntax}
+%  Tests if the specified member exist and is tracked.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}[EXP]{\object_member_type:nn, \object_member_type:Vn}
 %  \begin{syntax}
 %   \cs{object_member_type:nn} \marg{address} \marg{member name}
 %  \end{syntax}
-%  Fully expands to the type of member \meta{member name}. Use this function only with member variables specified in the generator proxy, not with other member variables.
+%  Fully expands to the type of specified tracked member.
 %
 % \fromV{1.0}
 % \end{function}
@@ -324,9 +332,18 @@
 %  \begin{syntax}
 %   \cs{object_new_member:nnn} \marg{address} \marg{member name} \marg{member type}
 %  \end{syntax}
-%  Creates a new member variable with specified name and type. You can't retrieve the type of these variables with \cs{object_member_type} functions.
+%  Creates a new member with specified name and type. The created member is not tracked.
 %
 % \fromV{1.0}
+% \end{function}
+%
+% \begin{function}{\object_new_member_tracked:nnn, \object_new_member_tracked:Vnn}
+%  \begin{syntax}
+%   \cs{object_new_member_tracked:nnn} \marg{address} \marg{member name} \marg{member type}
+%  \end{syntax}
+%  Creates a new tracked member.
+%
+% \fromV{2.3}
 % \end{function}
 %
 % \begin{function}[EXP]{\object_member_use:nnn, \object_member_use:Vnn, \object_member_use:nnv, \object_member_use:nn, \object_member_use:Vn}
@@ -1111,7 +1128,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_member_adr:nnn, \object_member_adr:nn}
+%\begin{macro}{\object_member_adr:nnn}
 %Get the address of a member variable
 %    \begin{macrocode}
 
@@ -1134,14 +1151,123 @@
       }
   }
 
-\cs_generate_variant:Nn \object_member_adr:nnn { Vnn, vnn, nnv }
+\cs_generate_variant:Nn \object_member_adr:nnn { Vnn, vnn, nnv, nnf }
+
+%    \end{macrocode}
+%\end{macro}
+%
+% \begin{macro}[pTF]{\object_member_if_exist:nnn}
+% Tests if the specified member exists
+%    \begin{macrocode}
+
+\prg_new_conditional:Nnn \object_member_if_exist:nnn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_member_adr:nnn { #1 }{ #2 }{ #3 }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \prg_return_false:
+      }
+  }
+
+\prg_generate_conditional_variant:Nnn \object_member_if_exist:nnn
+  { Vnn }{ p, T, F, TF }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}[pTF]{\object_member_if_tracked:nn}
+% Tests if the member is tracked.
+%    \begin{macrocode}
+
+\prg_new_conditional:Nnn \object_member_if_tracked:nn {p, T, F, TF }
+  {
+    \cs_if_exist:cTF
+      {
+        \object_rcmember_adr:nnn
+          { #1 }{ #2 _ type }{ str }
+      }
+      {
+        \prg_return_true:
+      }
+      {
+        \cs_if_exist:cTF
+          {
+            \object_ncmember_adr:nnn
+              {
+                \object_embedded_adr:nn { #1 }{ /_T_/ }
+              }
+              { #2 _ type }{ str }
+          }
+          {
+            \prg_return_true:
+          }
+          {
+            \prg_return_false:
+          }
+      }
+  }
+
+\prg_generate_conditional_variant:Nnn \object_member_if_tracked:nn { Vn }{ p, T, F, TF }
+
+\prg_new_eq_conditional:NNn \object_member_if_exist:nn
+  \object_member_if_tracked:nn { p, T, F, TF }
+\prg_new_eq_conditional:NNn \object_member_if_exist:Vn
+  \object_member_if_tracked:Vn { p, T, F, TF }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\object_member_type:nn}
+% Deduce the type of tracked members.
+%    \begin{macrocode}
+
+\cs_new:Nn \object_member_type:nn
+  {
+    \cs_if_exist:cTF
+      {
+        \object_rcmember_adr:nnn
+          { #1 }{ #2 _ type }{ str }
+      }
+      {
+        \object_rcmember_use:nnn
+          { #1 }{ #2 _ type }{ str }
+      }
+      {
+        \cs_if_exist:cT
+          {
+            \object_ncmember_adr:nnn
+              {
+                \object_embedded_adr:nn { #1 }{ /_T_/ }
+              }
+              { #2 _ type }{ str }
+          }
+          {
+            \object_ncmember_use:nnn
+              {
+                \object_embedded_adr:nn { #1 }{ /_T_/ }
+              }
+              { #2 _ type }{ str }
+          }
+      }
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
+%\begin{macro}{\object_member_adr:nn}
+%Get the address of a member variable
+%    \begin{macrocode}
 
 \cs_new:Nn \object_member_adr:nn
   {
-    \object_member_adr:nnv { #1 }{ #2 }
+    \object_member_adr:nnf { #1 }{ #2 }
       {
-        \object_rcmember_adr:nnn { #1 }
-          { #2 _ type }{ str }
+        \object_member_type:nn { #1 }{ #2 }
       }
   }
 
@@ -1176,15 +1302,15 @@
             \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
-    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3 }
+    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3, nnf #3 }
 
     \cs_new:cpn { #1 : nn #3 } ##1##2
       {
-        \use:c{ #1 : nnv #3 }
+        \use:c{ #1 : nnf #3 }
           { ##1 }{ ##2 }
           {
-            \object_rcmember_adr:nnn
-              { ##1 }{ ##2 _ type }{ str }
+            \object_member_type:nn
+              { ##1 }{ ##2 }
           }
       }
 
@@ -1237,19 +1363,6 @@
 
 %    \end{macrocode}
 %
-%\begin{macro}{\object_member_type:nn}
-%Deduce the member type from the generating proxy.
-%    \begin{macrocode}
-
-\cs_new:Nn \object_member_type:nn
-  {
-    \object_rcmember_use:nnn { #1 }
-      { #2 _ type }{ str }
-  }
-
-%    \end{macrocode}
-%\end{macro}
-%
 %    \begin{macrocode}
 
 \msg_new:nnnn { rawobjects }{ noerr }{ Unspecified ~ scope }
@@ -1289,50 +1402,9 @@
 
 %    \end{macrocode}
 %
-% \begin{macro}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:nn}
-% Tests if the specified member exists
-%    \begin{macrocode}
-
-\prg_new_conditional:Nnn \object_member_if_exist:nnn {p, T, F, TF }
-  {
-    \cs_if_exist:cTF
-      {
-        \object_member_adr:nnn { #1 }{ #2 }{ #3 }
-      }
-      {
-        \prg_return_true:
-      }
-      {
-        \prg_return_false:
-      }
-  }
-
-\prg_new_conditional:Nnn \object_member_if_exist:nn {p, T, F, TF }
-  {
-    \cs_if_exist:cTF
-      {
-        \object_member_adr:nn { #1 }{ #2 }
-      }
-      {
-        \prg_return_true:
-      }
-      {
-        \prg_return_false:
-      }
-  }
-
-\prg_generate_conditional_variant:Nnn \object_member_if_exist:nnn
-  { Vnn }{ p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_member_if_exist:nn
-  { Vn }{ p, T, F, TF }
-
-%    \end{macrocode}
-% \end{macro}
-
-%\begin{macro}{\object_new_member:nnn}
+%\begin{macro}{\object_new_member:nnn, \object_new_member_tracked:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
-
 
 \cs_new_protected:Nn \object_new_member:nnn
   {
@@ -1343,6 +1415,24 @@
   }
   
 \cs_generate_variant:Nn \object_new_member:nnn { Vnn, nnv }
+
+
+\cs_new_protected:Nn \object_new_member_tracked:nnn
+  {
+    \object_new_member:nnn { #1 }{ #2 }{ #3 }
+
+    \str_const:cn
+      {
+        \object_ncmember_adr:nnn
+          {
+            \object_embedded_adr:nn { #1 }{ /_T_/ }
+          }
+          { #2 _ type }{ str }
+      }
+      { #3 }
+  }
+
+\cs_generate_variant:Nn \object_new_member_tracked:nnn { Vnn, nnv }
 
 %    \end{macrocode}
 %\end{macro}
