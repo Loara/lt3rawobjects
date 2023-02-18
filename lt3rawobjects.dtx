@@ -153,7 +153,7 @@
 % \subsubsection*{Disadvantages}
 % \begin{itemize}
 %  \item You must manually create both the objects and link them;
-%  \item if you forgot to properly initialize the pointer member it'll contain the "null address" (the empty string). Despite other programming languages the null address is not treated specially by \thpkg, which makes finding null pointer errors more difficult. 
+%  \item if you forgot to properly initialize the pointer member it'll contain the ``null address'' (the empty string). Despite other programming languages the null address is not treated specially by \thpkg, which makes finding null pointer errors more difficult.
 % \end{itemize}
 %
 % \subsection{Clone the inner structure}
@@ -376,6 +376,33 @@
 % \fromV{1.0}
 % \end{function}
 %
+% \begin{function}{\object_member_generate:NN, \object_member_generate_protected:NN}
+%  \begin{syntax}
+%   \cs{object_member_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{\meta{name\textsubscript{2}}:\meta{arg1}\meta{args}}
+%  \end{syntax}
+%  Define the new functions \cs{\meta{name\textsubscript{1}}:nnn\meta{Targs} } and \cs{\meta{name\textsubscript{1}}:nn\meta{Targs} } that pass to \cs{\meta{name\textsubscript{2}}:\meta{arg1}\meta{args} } the specified member address as the first argument. \meta{Targs} is a list of argument specifications obtained by transforming each element of \meta{args} to |n|, |N|, |w|, |T| or |F|.
+%
+% The first three parameters of \cs{\meta{name\textsubscript{1}}:nnn\meta{args} } should be in the following order:
+%  \begin{enumerate}
+%    \item an object address;
+%    \item a member name;
+%    \item the type of specified member.
+%  \end{enumerate}
+%
+%  Function \cs{\meta{name\textsubscript{1}}:nn\meta{args} } only accepts the first two parameters and works only with tracked members. Notice that \meta{arg1} must be only one of the following: |n|, |c|, |v|, |x|, |f|, |e|, |o|.
+%
+% \fromV{2.3}
+% \end{function}
+%
+% \begin{function}{\object_member_generate_inline:Nnn, \object_member_generate_protected_inline:Nnn}
+%  \begin{syntax}
+%   \cs{object_member_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
+%  \end{syntax}
+%  Works as \cs{object_member_generate:NN}, however in \meta{name\textsubscript{2}} you can use parameters |#1| and |#2| to compose the needed function. Parameter |#1| expands to the (fully expanded) member type and |#2| is equal to |g| if the object is global and it's empty if it is local.
+%
+% \fromV{2.3}
+% \end{function}
+%
 % \subsection{Constants}
 % \begin{function}[rEXP]{\object_ncmember_adr:nnn, \object_ncmember_adr:Vnn, \object_ncmember_adr:vnn, \object_rcmember_adr:nnn, \object_rcmember_adr:Vnn}
 %  \begin{syntax}
@@ -405,8 +432,25 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \subsection{Methods}
+% \begin{function}{\object_ncmember_generate:NN, \object_ncmember_protected_generate:NN}
+%  \begin{syntax}
+%   \cs{object_ncmember_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
+%  \end{syntax}
+%  Works as \cs{object_member_generate:NN} but with constants instead of members.
 %
+%  \fromV{2.3}
+% \end{function}
+%
+% \begin{function}{\object_ncmember_generate_inline:Nnn, \object_ncmember_protected_generate_inline:Nnn}
+%  \begin{syntax}
+%   \cs{object_ncmember_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
+%  \end{syntax}
+%  Works as \cs{object_member_generate_inline:Nnn} but with constants instead of members.
+%
+%  \fromV{2.3}
+% \end{function}
+%
+% \subsection{Methods}
 % \begin{function}[rEXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn}
 %  \begin{syntax}
 %   \cs{object_ncmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
@@ -821,6 +865,59 @@
 %    }{ var }
 % \ExplSyntaxOff
 %
+% \subsection*{Example 3}
+%  Here we show how to properly use \cs{object_member_generate:NN}. Suppose we don't know \cs{object_member_use} and we want to use \cs{tl_use:N} to get the value stored in member |MEM| of object |U| in module |MD3|.
+%
+% \ExplSyntaxOn
+%    \proxy_create:nn {MD3}{ex3p}
+%    \proxy_push_member:nnn { \object_address:nn {MD3}{ex3p} }{MEM}{tl}
+%    \object_create:nnn { \object_address:nn {MD3}{ex3p} }{MD3}{U}
+% \ExplSyntaxOff
+%
+% We can do it in this way:
+% \begin{Coding}
+% !simfun[tl_use][c]
+%   {
+%     !simfun[object_member_adr][nnn]
+%       { !simfun[object_address][nn] { MD3 }{ U } }
+%       { MEM }{ tl }
+%   }
+% \end{Coding}
+% but this solution is not so pratical since we should write a lot of code each time. We can then use \cs{object_member_generate:NN} to define an auxilary macro \cs{myaux_print_tl:nnn} in this way:
+% \begin{Coding}
+% !simfun[object_member_generate][NN] \myaux_print_tl !simfun[tl_use][c]
+% \end{Coding}
+% then we can get the content of our member in this way:
+% \begin{Coding}
+% !simfun[myaux_print_tl][nnn]
+%    { !simfun[object_address][nn] { MD3 }{ U } }
+%    { MEM }{ tl }
+% \end{Coding}
+%
+% For example if |U| contains |Hi| then the preceding code will output \ExplSyntaxOn
+%  \object_member_set:nnnn
+%    { \object_address:nn {MD3}{U}}{MEM}{tl}{Hi}
+%  \object_member_generate_inline:Nnn \myaux_print_tl { #1_use }{ c }
+%  \myaux_print_tl:nn
+%    { \object_address:nn {MD3}{U}}{MEM}
+%  \ExplSyntaxOff . If member |MEM| is tracked then you can use also the following command, which is generated together with \cs{myaux_print_tl:nnn}
+% \begin{Coding}
+% !simfun[myaux_print_tl][nn]
+%    { !simfun[object_address][nn] { MD3 }{ U } }
+%    { MEM }
+% \end{Coding}
+%
+% However, this function only works with |tl| members since we use \cs{tl_use:N}, so you should define a new function for every possible type, and even if you do it newer types introduced in other packages will not be supported. In such cases you can use \cs{object_member_generate_inline:Nnn} which allows you to build the called function by specifying its name and its parameters. The preceding code then becomes
+% \begin{Coding}
+% !simfun[object_member_generate_inline][Nnn] \myaux_print_tl { tl_use }{ c }
+% \end{Coding}
+%
+% This function does much more: in the second argument you can put also the parameters |#1| and |#2| that will expand respectively to the type of specified member and its scope. Let \cs{myaux_print:nnn} be our version of \cs{object_member_use:nnn} that retrieves the valued of the specified member, we are now able to define it in this way:
+% \begin{Coding}
+% !simfun[object_member_generate_inline][Nnn] \myaux_print { #1_use }{ c }
+% \end{Coding}
+%
+% When you use \cs{myaux_print:nnn} on a member of type |int| it replaces all the recurrences of |#1| with |int|, thus it will call \cs{int_use:c}.
 %\end{documentation}
 %
 %\begin{implementation}
@@ -1212,7 +1309,8 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_member_if_tracked:nn { Vn }{ p, T, F, TF }
+\prg_generate_conditional_variant:Nnn \object_member_if_tracked:nn
+  { Vn }{ p, T, F, TF }
 
 \prg_new_eq_conditional:NNn \object_member_if_exist:nn
   \object_member_if_tracked:nn { p, T, F, TF }
@@ -1276,68 +1374,107 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% The first argument is the new function name without argument. The second one is the function name you'll use, here \#1 is the member type and \#2 is equal to |g| if the object is global. The third one are the argument of the second function without the first N.
+% \begin{macro}{\object_member_generate:NN, \object_member_generate_inline:Nnn, \object_member_generate_protected:NN, \object_member_generate_protected_inline:Nnn}
+% Generate member versions of specified functions.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \@@_generator_mem:nnn
+\cs_new:Nn \@@_par_trans:N
   {
-    \cs_new:cn
+    \str_case:nnF { #1 }
       {
-        rwobj-aux_ #1 : nn
+        { N }{ N }
+        { V }{ N }
+        { n }{ n }
+        { v }{ n }
+        { f }{ n }
+        { x }{ n }
+        { e }{ n }
+        { o }{ n }
+        { ~ }{}
       }
-      {
-        \use:c{ #2 : c #3 }
-      }
-    \cs_new:cpn {#1 : nnn #3} ##1##2##3
-      {
-        \use:c
-          {
-            rwobj-aux_ #1 : nn
-          }
-          { ##3 }
-          {
-            \@@_scope_pfx_cl:n{ ##1 }
-          }
-          {
-            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
-          }
-      }
-    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3, nnf #3 }
-
-    \cs_new:cpn { #1 : nn #3 } ##1##2
-      {
-        \use:c{ #1 : nnf #3 }
-          { ##1 }{ ##2 }
-          {
-            \object_member_type:nn
-              { ##1 }{ ##2 }
-          }
-      }
-
-    \cs_generate_variant:cn { #1 : nn #3 }{ Vn #3 }
+      { #1 }
   }
 
-
-\msg_new:nnn{ rawobjects }{ nonew }{ Unknown ~ function ~ #1 }
-
-\cs_new_protected:Nn \@@_generator_mem_protected:nnn
+\cs_new:Nn \@@_par_trans:n
   {
-    \cs_new_protected:cn
+    \str_map_function:nN { #1 } \@@_par_trans:N
+  }
+
+\str_new:N \l_@@_tmp_fa_str
+
+\cs_new_protected:Nn \@@_save_dat:n
+  {
+    \str_set:Nx \l_@@_tmp_fa_str
+      { \str_tail:n{ #1 } }
+  }
+\cs_new_protected:Nn \@@_save_dat:nnN
+  {
+    \str_set:Nx \l_@@_tmp_fa_str
+      { \str_tail:n{ #2 } }
+  }
+\cs_new_protected:Nn \@@_save_dat_aux:n
+  {
+    \@@_save_dat:nnN #1
+  }
+\cs_generate_variant:Nn \@@_save_dat_aux:n { f }
+
+\cs_new_protected:Nn \@@_save_fun:N
+  {
+    \@@_save_dat_aux:f { \cs_split_function:N #1 }
+  }
+
+\cs_new_protected:Nn \@@_mgen:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
       {
-        rwobj-aux_ #1 : nn
-      }
-      {
-        \cs_if_exist_use:cF{ #2 : c #3 }
-        {
-          \msg_error:nnx{ rawobjects }{ nonew }{ #2 :c #3 }
-        }
-      }
-    \cs_new_protected:cpn {#1 : nnn #3} ##1##2##3
-      {
-        \use:c
+        #2
           {
-            rwobj-aux_ #1 : nn
+            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
+      }
+    \cs_new:cpn { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
+      {
+        #2
+          {
+            \object_member_adr:nn{ ##1 }{ ##2 }
+          }
+      }
+  }
+\cs_new_protected:Nn \@@_mgen_pr:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        #2
+          {
+            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_new_protected:cpn
+      { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
+      {
+        #2
+          {
+            \object_member_adr:nn{ ##1 }{ ##2 }
+          }
+      }
+  }
+
+\cs_new_protected:Nn \@@_mgen:nnn
+  {
+    \@@_save_dat:n { #3 }
+
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf, ff }
+
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
           { ##3 }
           {
             \@@_scope_pfx_cl:n{ ##1 }
@@ -1346,19 +1483,225 @@
             \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
-    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3, nnv #3 }
-
-    \cs_new_protected:cpn { #1 : nn #3 } ##1##2
+    \cs_new:cpn { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
       {
-        \use:c{ #1 : nnv #3 }
-          { ##1 }{ ##2 }
+        \use:c { @@_auxfun_#1 :ff }
           {
-            \object_rcmember_adr:nnn
-              { ##1 }{ ##2 _ type }{ str }
+            \object_member_type:nn { ##1 }{ ##2 }
+          }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_member_adr:nn{ ##1 }{ ##2 }
           }
       }
+  }
+\cs_new_protected:Nn \@@_mgen_pr:nnn
+  {
+    \@@_save_dat:n { #3 }
 
-    \cs_generate_variant:cn { #1 : nn #3 }{ Vn #3 }
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf, ff }
+
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+    \cs_new_protected:cpn
+      { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
+      {
+        \use:c { @@_auxfun_#1 :ff }
+          {
+            \object_member_type:nn { ##1 }{ ##2 }
+          }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_member_adr:nn{ ##1 }{ ##2 }
+          }
+      }
+  }
+
+\cs_generate_variant:Nn \@@_mgen:nN { fN }
+\cs_generate_variant:Nn \@@_mgen:nnn { fnn }
+\cs_generate_variant:Nn \@@_mgen_pr:nN { fN }
+\cs_generate_variant:Nn \@@_mgen_pr:nnn { fnn }
+
+\cs_new_protected:Nn \object_member_generate:NN
+  {
+    \@@_mgen:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_member_generate_inline:Nnn
+  {
+    \@@_mgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+\cs_new_protected:Nn \object_member_generate_protected:NN
+  {
+    \@@_mgen_pr:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_member_generate_protected_inline:Nnn
+  {
+    \@@_mgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\object_ncmember_generate:NN, \object_ncmember_generate_inline:Nnn, \object_ncmember_generate_protected:NN, \object_ncmember_generate_protected_inline:Nnn}
+% Generate ncmember versions of specified functions.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \@@_ncgen:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        #2
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+\cs_new_protected:Nn \@@_ncgen_pr:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        #2
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+
+\cs_new_protected:Nn \@@_ncgen:nnn
+  {
+    \@@_save_dat:n { #3 }
+
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf }
+
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+\cs_new_protected:Nn \@@_ncgen_pr:nnn
+  {
+    \@@_save_dat:n { #3 }
+
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf }
+
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+
+\cs_generate_variant:Nn \@@_ncgen:nN { fN }
+\cs_generate_variant:Nn \@@_ncgen:nnn { fnn }
+\cs_generate_variant:Nn \@@_ncgen_pr:nN { fN }
+\cs_generate_variant:Nn \@@_ncgen_pr:nnn { fnn }
+
+\cs_new_protected:Nn \object_ncmember_generate:NN
+  {
+    \@@_ncgen:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_ncmember_generate_inline:Nnn
+  {
+    \@@_ncgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+\cs_new_protected:Nn \object_ncmember_generate_protected:NN
+  {
+    \@@_ncgen_pr:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_ncmember_generate_protected_inline:Nnn
+  {
+    \@@_ncgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
+% Auxilary functions
+%    \begin{macrocode}
+
+\cs_generate_variant:Nn \cs_generate_variant:Nn { cx }
+
+\cs_new_protected:Nn \@@_genmem_int:nnn
+  {
+    \@@_mgen:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str, nnv \str_use:N \l_@@_tmp_fa_str }
+    \cs_generate_variant:cx
+      { #1 : nn \str_use:N \l_@@_tmp_fa_str }
+      { Vn \str_use:N \l_@@_tmp_fa_str }
+  }
+\cs_new_protected:Nn \@@_genmem_pr_int:nnn
+  {
+    \@@_mgen_pr:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str, nnv \str_use:N \l_@@_tmp_fa_str }
+    \cs_generate_variant:cx
+      { #1 : nn \str_use:N \l_@@_tmp_fa_str }
+      { Vn \str_use:N \l_@@_tmp_fa_str }
+  }
+
+\cs_new_protected:Nn \@@_genncm_int:nnn
+  {
+    \@@_ncgen:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str }
+  }
+\cs_new_protected:Nn \@@_genncm_pr_int:nnn
+  {
+    \@@_ncgen_pr:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str }
   }
 
 %    \end{macrocode}
@@ -1441,7 +1784,7 @@
 %Uses a member variable
 %    \begin{macrocode}
 
-\@@_generator_mem:nnn {object_member_use}{ #1_use }{}
+\@@_genmem_int:nnn {object_member_use}{ #1_use }{c}
 
 \cs_generate_variant:Nn \object_member_use:nnn {vnn}
 
@@ -1452,7 +1795,7 @@
 % Set the value a member.
 %    \begin{macrocode}
 
-\@@_generator_mem:nnn {object_member_set}{ #1_#2 set }{n}
+\@@_genmem_pr_int:nnn {object_member_set}{ #1_#2 set }{ cn }
 
 %    \end{macrocode}
 %\end{macro}
@@ -1461,7 +1804,7 @@
 % Make a member equal to another variable.
 %    \begin{macrocode}
 
-\@@_generator_mem_protected:nnn { object_member_set_eq }{ #1 _ #2 set_eq }{ N }
+\@@_genmem_pr_int:nnn { object_member_set_eq }{ #1 _ #2 set_eq }{ cN }
 
 \cs_generate_variant:Nn \object_member_set_eq:nnnN { nnnc, Vnnc }
 
@@ -1504,60 +1847,6 @@
 \cs_generate_variant:Nn \object_rcmember_adr:nnn { Vnn }
 %    \end{macrocode}
 %\end{macro}
-%
-% The first argument is the new function name without argument. The second one is the function name you'll use, here \#1 is the constant type. The third one are the argument of the second function without the first N.
-%    \begin{macrocode}
-
-\cs_new_protected:Nn \@@_generator_ncmem:nnn
-  {
-    \cs_new:cn
-      {
-        rwobj-aux_ #1 : n
-      }
-      {
-        \use:c{ #2 : c #3 }
-      }
-    \cs_new:cpn {#1 : nnn #3} ##1##2##3
-      {
-        \use:c
-          {
-            rwobj-aux_ #1 : n
-          }
-          { ##3 }
-          {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
-          }
-      }
-    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3 }
-  }
-
-\cs_new_protected:Nn \@@_generator_ncmem_protected:nnn
-  {
-    \cs_new_protected:cn
-      {
-        rwobj-aux_ #1 : n
-      }
-      {
-        \cs_if_exist_use:cF{ #2 : c #3 }
-          {
-            \msg_error:nnx{ rawobjects }{ nonew }{ #2 :c #3 }
-          }
-      }
-    \cs_new_protected:cpn {#1 : nnn #3} ##1##2##3
-      {
-        \use:c
-          {
-            rwobj-aux_ #1 : n
-          }
-          { ##3 }
-          {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
-          }
-      }
-    \cs_generate_variant:cn { #1 : nnn #3 }{ Vnn #3 }
-  }
-
-%    \end{macrocode}
 %
 % \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn}
 % Tests if the specified member constant exists.
@@ -1603,7 +1892,7 @@
 % Uses a near/remote constant.
 %    \begin{macrocode}
 
-\@@_generator_ncmem:nnn{ object_ncmember_use }{ #1_use}{}
+\@@_genncm_int:nnn { object_ncmember_use }{ #1_use}{ c }
 
 \cs_new:Nn \object_rcmember_use:nnn
   {
@@ -1622,7 +1911,7 @@
 % Creates a constant variable, use with caution
 %    \begin{macrocode}
 
-\@@_generator_ncmem_protected:nnn { object_newconst }{ #1 _ const }{n}
+\@@_genncm_pr_int:nnn { object_newconst }{ #1 _ const }{ cn }
 
 %    \end{macrocode}
 % \end{macro}
