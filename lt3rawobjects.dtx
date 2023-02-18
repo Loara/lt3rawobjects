@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2023/02/16 2.3-beta-2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2023/02/18 2.3-beta-2 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2023/02/16}{ 2.3-beta-2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2023/02/18}{ 2.3-beta-2 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -43,7 +43,7 @@
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
 % \NewDocumentCommand{\thvsn}{}{2.3-beta-2}
-% \NewDocumentCommand{\thdta}{}{2023/02/16}
+% \NewDocumentCommand{\thdta}{}{2023/02/18}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 % \NewDocumentCommand{\fromVD}{ m m }{{\ttfamily From: #1}\par {\ttfamily Deprecated in: #2}}
 %
@@ -432,7 +432,7 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\object_ncmember_generate:NN, \object_ncmember_protected_generate:NN}
+% \begin{function}{\object_ncmember_generate:NN, \object_ncmember_protected_generate:NN, \object_rcmember_generate:NN, \object_rcmember_protected_generate:NN}
 %  \begin{syntax}
 %   \cs{object_ncmember_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
 %  \end{syntax}
@@ -441,7 +441,7 @@
 %  \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\object_ncmember_generate_inline:Nnn, \object_ncmember_protected_generate_inline:Nnn}
+% \begin{function}{\object_ncmember_generate_inline:Nnn, \object_ncmember_protected_generate_inline:Nnn, \object_rcmember_generate_inline:Nnn, \object_rcmember_protected_generate_inline:Nnn}
 %  \begin{syntax}
 %   \cs{object_ncmember_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
 %  \end{syntax}
@@ -493,7 +493,6 @@
 % \end{function}
 %
 % \subsection{Creation of constants}
-%
 % \begin{function}{\object_newconst_tl:nnn, \object_newconst_tl:Vnn, \object_newconst_str:nnn, \object_newconst_str:Vnn, \object_newconst_int:nnn, \object_newconst_int:Vnn, \object_newconst_clist:nnn, \object_newconst_clist:Vnn, \object_newconst_dim:nnn, \object_newconst_dim:Vnn, \object_newconst_skip:nnn, \object_newconst_skip:Vnn, \object_newconst_fp:nnn, \object_newconst_fp:Vnn}
 %  \begin{syntax}
 %   \cs{object_newconst_\meta{type}:nnn} \Arg{address} \Arg{constant name} \Arg{value}
@@ -1663,6 +1662,107 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\object_rcmember_generate:NN, \object_rcmember_generate_inline:Nnn, \object_rcmember_generate_protected:NN, \object_rcmember_generate_protected_inline:Nnn}
+% Generate ncmember versions of specified functions.
+%    \begin{macrocode}
+
+\cs_new_protected:Nn \@@_rcgen:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        #2
+          {
+            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+\cs_new_protected:Nn \@@_rcgen_pr:nN
+  {
+    \@@_save_fun:N #2
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        #2
+          {
+            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+
+\cs_new_protected:Nn \@@_rcgen:nnn
+  {
+    \@@_save_dat:n { #3 }
+
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf }
+
+    \cs_new:cpn { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+\cs_new_protected:Nn \@@_rcgen_pr:nnn
+  {
+    \@@_save_dat:n { #3 }
+
+    \cs_new:cpn { @@_auxfun_#1 :nn } ##1##2
+      {
+        \use:c{ #2 : #3 }
+      }
+    \cs_generate_variant:cn { @@_auxfun_#1 :nn }{ nf }
+
+    \cs_new_protected:cpn
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str } ##1##2##3
+      {
+        \use:c { @@_auxfun_#1 :nf }
+          { ##3 }
+          {
+            \@@_scope_pfx_cl:n{ ##1 }
+          }
+          {
+            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+          }
+      }
+  }
+
+\cs_generate_variant:Nn \@@_rcgen:nN { fN }
+\cs_generate_variant:Nn \@@_rcgen:nnn { fnn }
+\cs_generate_variant:Nn \@@_rcgen_pr:nN { fN }
+\cs_generate_variant:Nn \@@_rcgen_pr:nnn { fnn }
+
+\cs_new_protected:Nn \object_rcmember_generate:NN
+  {
+    \@@_rcgen:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_rcmember_generate_inline:Nnn
+  {
+    \@@_rcgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+\cs_new_protected:Nn \object_rcmember_generate_protected:NN
+  {
+    \@@_rcgen_pr:fN { \cs_to_str:N #1 } #2
+  }
+
+\cs_new_protected:Nn \object_rcmember_generate_protected_inline:Nnn
+  {
+    \@@_rcgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
+  }
+
+%    \end{macrocode}
+% \end{macro}
+%
 % Auxilary functions
 %    \begin{macrocode}
 
@@ -1704,6 +1804,21 @@
       { Vnn \str_use:N \l_@@_tmp_fa_str }
   }
 
+\cs_new_protected:Nn \@@_genrcm_int:nnn
+  {
+    \@@_rcgen:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str }
+  }
+\cs_new_protected:Nn \@@_genrcm_pr_int:nnn
+  {
+    \@@_rcgen_pr:nnn { #1 }{ #2 }{ #3 }
+    \cs_generate_variant:cx
+      { #1 : nnn \str_use:N \l_@@_tmp_fa_str }
+      { Vnn \str_use:N \l_@@_tmp_fa_str }
+  }
+
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -1713,52 +1828,13 @@
     Object ~ #1 ~ hasn't ~ a ~ scope ~ variable
   }
 
-\msg_new:nnnn { rawobjects }{ scoperr }{ Nonstandard ~ scope }
-  {
-    Operation ~ not ~ permitted ~ on ~ object ~ #1 ~
-    ~ since ~ it ~ wasn't ~ declared ~ local ~ or ~ global
-  }
-
-\cs_new_protected:Nn \@@_force_scope:n
-  {
-    \cs_if_exist:cTF
-      {
-        \object_ncmember_adr:nnn
-          {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
-          }
-          { S }{ str }
-      }
-      {
-        \bool_if:nF
-          {
-            \object_if_local_p:n { #1 } || \object_if_global_p:n { #1 }
-          }
-          {
-            \msg_error:nnx { rawobjects }{ scoperr }{ #1 }
-          }
-      }
-      {
-        \msg_error:nnx { rawobjects }{ noerr }{ #1 }
-      }
-  }
-
 %    \end{macrocode}
 %
 %\begin{macro}{\object_new_member:nnn, \object_new_member_tracked:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_new_member:nnn
-  {
-    \cs_if_exist_use:cT { #3 _ new:c }
-      {
-        { \object_member_adr:nnn { #1 }{ #2 }{ #3 } }
-      }
-  }
-  
-\cs_generate_variant:Nn \object_new_member:nnn { Vnn, nnv }
-
+\@@_genmem_pr_int:nnn { object_new_member }{ #1 _ new }{ c }
 
 \cs_new_protected:Nn \object_new_member_tracked:nnn
   {
@@ -1894,15 +1970,7 @@
 
 \@@_genncm_int:nnn { object_ncmember_use }{ #1_use}{ c }
 
-\cs_new:Nn \object_rcmember_use:nnn
-  {
-    \cs_if_exist_use:cT { #3 _ use:c }
-      {
-        { \object_rcmember_adr:nnn { #1 }{ #2 }{ #3 } }
-      }
-  }
-
-\cs_generate_variant:Nn \object_rcmember_use:nnn { Vnn }
+\@@_genrcm_int:nnn { object_rcmember_use }{ #1_use}{ c }
 
 %    \end{macrocode}
 %\end{macro}
