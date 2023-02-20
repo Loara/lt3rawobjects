@@ -1375,8 +1375,7 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_member_generate:NN, \object_member_generate_inline:Nnn, \object_member_generate_protected:NN, \object_member_generate_protected_inline:Nnn}
-% Generate member versions of specified functions.
+% Helper functions for \cs{object_*_generate} functions.
 %    \begin{macrocode}
 
 \cs_new:Nn \@@_par_trans:N
@@ -1423,6 +1422,17 @@
   {
     \@@_save_dat_aux:f { \cs_split_function:N #1 }
   }
+  
+\cs_new:Nn \@@_use_dat:nn
+  {
+    #1 : #2 \str_use:N \l_@@_tmp_fa_str
+  }
+
+%    \end{macrocode}
+%
+% \begin{macro}{\object_member_generate:NN, \object_member_generate_inline:Nnn, \object_member_generate_protected:NN, \object_member_generate_protected_inline:Nnn}
+% Generate member versions of specified functions.
+%    \begin{macrocode}
 
 \cs_new_protected:Nn \@@_mgen:nN
   {
