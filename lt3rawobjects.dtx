@@ -22,11 +22,11 @@
 %
 % \iffalse
 %<*driver>
-\ProvidesFile{lt3rawobjects.dtx}[2023/02/18 2.3-beta.2 Objects and proxies in LaTeX3]
+\ProvidesFile{lt3rawobjects.dtx}[2023/03/17 2.3 Objects and proxies in LaTeX3]
 %</driver>
 %<package>\NeedsTeXFormat{LaTeX2e}
 %<package>\RequirePackage{expl3}[2022-04-10]
-%<package>\ProvidesExplPackage{lt3rawobjects}{2023/02/18}{ 2.3-beta.2 }{Objects and proxies in LaTeX3}
+%<package>\ProvidesExplPackage{lt3rawobjects}{2023/03/17}{ 2.3 }{Objects and proxies in LaTeX3}
 %<*driver>
 \documentclass[full]{l3doc}
 \usepackage{lt3rawobjects}
@@ -42,8 +42,8 @@
 % \fi
 %
 % \NewDocumentCommand{\thpkg}{}{\pkg{lt3rawobjects}}
-% \NewDocumentCommand{\thvsn}{}{2.3-beta.2}
-% \NewDocumentCommand{\thdta}{}{2023/02/18}
+% \NewDocumentCommand{\thvsn}{}{2.3}
+% \NewDocumentCommand{\thdta}{}{2023/03/17}
 % \NewDocumentCommand{\fromV}{ m }{{\ttfamily From: #1}}
 % \NewDocumentCommand{\fromVD}{ m m }{{\ttfamily From: #1}\par {\ttfamily Deprecated in: #2}}
 %
@@ -84,18 +84,18 @@
 % In \thpkg\ all the macros ending with |_adr| or |_address| are fully expandable and can be used to compose valid addresses as explained in their documentation.
 %
 % \section{Objects}
-% An \emph{object} is just a collection of several related entities called \emph{item}. Objects are themselves entities so they have addresses and could be contained inside other objects. Objects addresses are also used to compose the addresses of each of their inner entity, thus different objects can have items with the same name without clashing each other. Each object is uniquely identified by its pure address, which is composed by a \meta{module} and an \meta{identifier} as explained before. The use of underscore character in objects identifiers is reserved. You can retrive the address of an object via the \cs{object_address:nn} function.
+% An \emph{object} is just a collection of several related entities called \emph{fields}. Objects are themselves entities so they have addresses and could be contained inside other objects. Objects addresses are also used to compose the addresses of each of their inner entity, thus different objects can have fields with the same name without clashing each other. Each object is uniquely identified by its pure address, which is composed by a \meta{module} and an \meta{identifier} as explained before. The use of underscore character in objects identifiers is reserved. You can retrive the address of an object via the \cs{object_address:nn} function.
 %
 % Objects are always created from already existing objects. An object that can be used to create other objects is called |proxy|, and the proxy that has created an object is its \emph{generator}. In the |rawobjects| module is already allocated a particular proxy that can be used to create every other proxy. Its identifier is just |proxy| and its pure address is stored in \cs{c_proxy_address_str}. The functions \cs{object_create} can be used to create new objects.
 %
-% \section{Items}
-%  Remember that objects are just a collection of different items uniquely identidied by a pure address. Here an item could be one of the following entities:
+% \section{Fields}
+%  Remember that objects are just a collection of different fields uniquely identidied by a pure address. Here an field could be one of the following entities:
 % \begin{itemize}
-%   \item a \LaTeX3 variable, in which case the item is called \emph{member};
-%   \item a \LaTeX3 constant, in which case the item is called just \emph{constant};
-%   \item a \LaTeX3 function, in which case the item is called \emph{method};
-%   \item generic control sequences, in which case the item is called simply \emph{macro};
-%   \item an entire object, in which case the item is called \emph{embedded object}.
+%   \item a \LaTeX3 variable, in which case the field is called \emph{member};
+%   \item a \LaTeX3 constant, in which case the field is called just \emph{constant};
+%   \item a \LaTeX3 function, in which case the field is called \emph{method};
+%   \item generic control sequences, in which case the field is called simply \emph{macro};
+%   \item an entire object, in which case the field is called \emph{embedded object}.
 % \end{itemize}
 %
 % Objects could be declared \emph{local} or \emph{global}. The only difference between a local and a global object is the scope of their members (that are \LaTeX3 variables). You should always create global object unless you specifically need local members.
@@ -114,9 +114,9 @@
 % A member can be \emph{tracked} or \emph{not tracked}. A tracked member have additional information, like its type, stored in the object or in its generator. In particular, you don't need to specify the type of a tracked member and some functions in \thpkg\ are able to retrieve the required information. All the members declared in the generator are automatically tracked.
 %
 % \section{Object members}
-% Sometimes it's necessary to store an instance of an object inside another object, since objects are structured entities that can't be entirely contained in a single \LaTeX3 variable you can't just put it inside a member or constant. However, there are some very easy workarounds to insert object instances as items of other objects. 
+% Sometimes it's necessary to store an instance of an object inside another object, since objects are structured entities that can't be entirely contained in a single \LaTeX3 variable you can't just put it inside a member or constant. However, there are some very easy workarounds to insert object instances as fields of other objects. 
 % 
-% For example, we're in module |MOD| and we have an object with id |PAR|. We want to provide |PAR| with an item that holds an instance of an object created by proxy |PRX|. We can achieve this in three ways:
+% For example, we're in module |MOD| and we have an object with id |PAR|. We want to provide |PAR| with a field that holds an instance of an object created by proxy |PRX|. We can achieve this in three ways:
 %
 % \subsection{Create a pointer member} 
 % We first create a new object from |PRX|
@@ -177,7 +177,7 @@
 % 
 % \subsubsection*{Disadvantages}
 % \begin{itemize}
-%  \item If you need the original instance of the stored object then you should create a temporary object and manually copy each item to it. Don't use this method if you later need to retrieve the stored object entirely and not only its items.
+%  \item If you need the original instance of the stored object then you should create a temporary object and manually copy each field to it. Don't use this method if you later need to retrieve the stored object entirely and not only its fields.
 % \end{itemize}
 %
 % \subsection{Embedded objects}
