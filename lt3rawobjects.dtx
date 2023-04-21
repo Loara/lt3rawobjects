@@ -87,7 +87,7 @@
 % \section{Address spaces and objects}
 % Since in \LaTeX3 all the functions and variables are declared globally a package mantainer can't just allocate its resources on a random address in order to avoid possible clashes between independent packages. Moreover, a lot of packages need to create new resources during document composition from an user input. Since the user is not aware of the implementation the package owner should insure that any user input doesn't try to allocate new resources on already taken addresses.
 %
-% For these reasons each address should be contained inside an \emph{address space} which is just a sequence of characters that avoid clashes between resources. More precisely, the address of a function should have the following form:
+% For these reasons each address should be contained inside an \emph{address space} which is just a string that avoid clashes between resources. More precisely, the address of a function should have the following form:
 % \begin{Coding}
 %   !meta[address space]_!meta[function name]:!meta[arguments]
 % \end{Coding}
@@ -97,18 +97,15 @@
 % \end{Coding}
 % where \meta{scope} is one of |g|, |l|, |c|.
 %
-% Each \LaTeX3 package has an unique global address space, called \emph{primary address space} or \emph{module space}, that should contain any resource instantiated in that package. Inside an already existing address space the package owner can define additional address spaces, which are in turn called \emph{subspaces}. You can define new subspaces directly inside your primary address space or even inside other subspaces.
-%
-% The names of primary address spaces and subspaces should contain only alphanumeric characters (\texttt{a}-\texttt z, \texttt A-\texttt Z, \texttt 0-\texttt 9), in particular no underscore character (|_|) is allowed. Inside an address space the module name should come first and an underscore |_| should separate it from its subspaces if present. Also parent subspaces should come before their childs and you can use the underscore |_| or the dot |.| to separate them.
-%
-% For example, assume we're in the module \texttt{mymod} which contain the subspace \texttt{spaceA} which in turn contains the subspace \texttt{spaceB}. When you want to use an address inside \texttt{spaceB} you should use the following address space
+% More precisely, an address space consists in a sequence of one or more nonempty alphanumeric strings, called \emph{address names}, separated by dots (|.|). For example 
 % \begin{Coding}
-%   mymod_spaceA_spaceB
+%   mod1
+%   A.b2
+%   pp.9.12w
 % \end{Coding}
-% or if you want to use the dot
-% \begin{Coding}
-%   mymod_spaceA.spaceB
-% \end{Coding}
+% are all valid address spaces. The leftmost address name in an address space is also called \emph{module name} and should uniquely identify the entire package: different \LaTeX3 packages can't have the same module name. An address space that has only the module name is also called \emph{primary address space} or \emph{module space}. Any other address name that follows the module name are called \emph{subspace names}. For example in the address space |mod.2.ap| the module name is |mod| whereas |2| and |ap| are subspace names.
+%
+% An address space is comtained in another one if and only if the first one contains all the address names of the second in the same order, for example |AA.BB.CC| is contained in |AA| and in |AA.BB| but not in |CC|, |AA.B| or in |AA.BB.CC.E|.
 %
 % An address space can also be seen as a container that holds macros/variables/functions that share common functionalities. For example if you want to store the coordinated of a three dimensional point you can put them inside three variables contained in a subspace of your module space, in this way the resulting address space will represent your original point.
 %
@@ -119,7 +116,7 @@
 % \section{Proxy}
 % Instead of generic address spaces, objects should be created before to use them. In order to create a new object you should uuse a particular kind of object that holds all the necessary information to instantiate your object. These objects that are needed to instantiate new objects are called \emph{proxy}, and the proxy used to instantiated an object is its \emph{generator}. Every object knows the address of its generator.
 %
-% For example the proxy |rwobj_empty| can be used to create empty objects, which are objects that contains only the required fields needed by the exchanging protocol. However, you can create your own proxy that initialized your object fields as you wish. To create new proxies you can use the proxy |rwobj_proxy|.
+% For example the proxy |rwobj_empty| can be used to create empty objects, which are objects that contains only the required fields needed by the exchanging protocol. However, you can create your own proxy that initialized your object fields as you wish. To create new proxies you can use the proxy |rwobj_proxygen|.
 %
 % Proxy can also be used as interfaces to group objects by common utilities. Indeed you can use the function \cs{rwobj_proxy_test_eq:nn} to test if an object has been created with the selected proxy.
 %
@@ -141,103 +138,17 @@
 % Both near and remote constants are created in the same way via the |_newconst| functions, however remote constant should be created in a proxy whereas near contant are created directly in the target object.
 %
 % \subsection{Methods}
-% Methods are \LaTeX3 functions that can't be changed once they're created. Like constant, methods could be near or remote. Moreover, functions in this library dealing with near methods contain |ncmethod| whereas those dealing with remote methods contain |rcmethod| in their names. 
+% Methods are \LaTeX3 functions that can't be changed once they're created. Like constant, methods could be near or remote. Moreover, functions in this library dealing with near methods contain |nmethod| whereas those dealing with remote methods contain |rmethod| in their names. 
 %
 % \subsection{Members}
 % Members are just mutable \LaTeX3 variables. You can manually create new members in already existing objects or you can put the definition of a new member directly in a proxy with the \cs{proxy_push_member} functions. In this way all the objects created with that proxy will have a member according to such definition. If the object is local/global then all its members are automatically local/global.
 %
 % A member can be \emph{tracked} or \emph{not tracked}. A tracked member have additional information, like its type, stored in the object or in its generator. In particular, you don't need to specify the type of a tracked member and some functions in \thpkg\ are able to retrieve the required information. All the members declared in the generator are automatically tracked.
 %
-% \section{Object members}
-% Sometimes it's necessary to store an instance of an object inside another object, since objects are structured entities that can't be entirely contained in a single \LaTeX3 variable you can't just put it inside a member or constant. However, there are some very easy workarounds to insert object instances as fields of other objects. 
-% 
-% For example, we're in module |MOD| and we have an object with id |PAR|. We want to provide |PAR| with a field that holds an instance of an object created by proxy |PRX|. We can achieve this in three ways:
+% \subsection{Embedded object}
+% Objects can be created inside other objects by just using an address space contained in the parent object address, for example an object created at the address |mod.A.B| is automatically contained in the object at address |mod.A|. A contained object is independent from the contained, imparticular they can have different scope.
 %
-% \subsection{Create a pointer member} 
-% We first create a new object from |PRX|
-% \begin{Coding}
-%  !simfun[object_create][nnn] 
-%    { !simfun[object_address][nn] { MOD }{ PRX } }{ MOD }{ INST }
-% \end{Coding} 
-% then we create an |str| member in |PAR| that will hold the address of the newly created object.
-% \begin{Coding}
-%  !simfun[object_new_member][nnn]
-%    {
-%      !simfun[object_address][nn] { MOD }{ PAR }
-%    }{ pointer }{ str }
-%
-%  !simfun[object_member_set][nnnx]
-%    {
-%      !simfun[object_address][nn] { MOD }{ PAR }
-%    }
-%    { pointer }{ str }
-%    {
-%      !simfun[object_address][nn] { MOD }{ INST }
-%    }
-% \end{Coding}
-%
-% You can then get the pointed object by just using the |pointer| member. Notice that you're not force to use the |str| type for the pointer member, but you can also use |tl| or any custom \meta{type}. In the latter case be sure to at least define the following functions: \cs{\meta{type}_new:c}, \cs{\meta{type}_(g)set:cn} and \cs{\meta{type}_use:c}.
-%
-% \subsubsection*{Advantages}
-% \begin{itemize}
-%   \item Simple and no additional function needed to create and manage included objects;
-%   \item you can share the same object between different containers;
-%   \item included objects are objects too, you can use address stored in pointer member just like any object address.
-% \end{itemize}
-% 
-% \subsubsection*{Disadvantages}
-% \begin{itemize}
-%  \item You must manually create both the objects and link them;
-%  \item if you forgot to properly initialize the pointer member it'll contain the ``null address'' (the empty string). Despite other programming languages the null address is not treated specially by \thpkg, which makes finding null pointer errors more difficult.
-% \end{itemize}
-%
-% \subsection{Clone the inner structure}
-% Anoter solution is to copy the members declared in |PRX| to |PAR|. For example,  if in |PRX| are declared a member with name |x| and type |str|, and a member with name |y| and type |int| then
-% \begin{Coding}
-%  !simfun[object_new_member][nnn]
-%    {
-%      !simfun[object_address][nn] { MOD }{ PAR }
-%    }{ prx-x }{ str }
-%  !simfun[object_new_member][nnn]
-%    {
-%      !simfun[object_address][nn] { MOD }{ PAR }
-%    }{ prx-y }{ int } 
-% \end{Coding}
-%
-% \subsubsection*{Advantages}
-% \begin{itemize}
-%  \item Very simple;
-%  \item no hidden item is created, this procedure has the lowest overhead among all the proposed solutions here.
-% \end{itemize}
-% 
-% \subsubsection*{Disadvantages}
-% \begin{itemize}
-%  \item If you need the original instance of the stored object then you should create a temporary object and manually copy each field to it. Don't use this method if you later need to retrieve the stored object entirely and not only its fields.
-% \end{itemize}
-%
-% \subsection{Embedded objects}
-% From \thpkg\ \texttt{2.2} you can put \emph{embedded objects} inside objects. Embedded objects are created with \cs{embedded_create} function 
-% \begin{Coding}
-%  !simfun[embedded_create][nnn] 
-%    { 
-%      !simfun[object_address][nn] { MOD }{ PAR } 
-%    }
-%    { PRX }{ emb }
-% \end{Coding}
-% and addresses of emmbedded objects can be retrieved with function \cs{object_embedded_adr}. You can also put the definition of embedded objects in a proxy by using \cs{proxy_push_embedded} just like \cs{proxy_push_member}.
-%
-% \subsubsection*{Advantages}
-% \begin{itemize}
-%   \item You can put a declaration inside a proxy so that embedded objects are automatically created during creation of parent object;
-%   \item included objects are objects too, you can use address stored in pointer member just like any object address.
-% \end{itemize}
-% 
-% \subsubsection*{Disadvantages}
-% \begin{itemize}
-%  \item Needs additional functions available for version \texttt{2.2} or later;
-%  \item embedded objects must have the same scope and visibility of parent one; 
-%  \item creating objects also creates additional hidden variables, taking so (little) additional space.
-% \end{itemize}
+% An \emph{embedded object} is not just an object instantiated in a parent object, but it also inherit some properties of the parent object like the scope. 
 %
 % \section{Library functions}
 % \label{sec:lib}
@@ -259,14 +170,17 @@
 %  \begin{syntax}
 %   \cs{object_address:nn} \Arg{module} \Arg{id}
 %  \end{syntax}
-%  Composes the address of object in module \meta{module} with identifier \meta{id} and places it in the input stream. Notice that both \meta{module} and \meta{id} are converted to strings before composing them in the address, so they shouldn't contain any command inside.
+%  Composes the address of object in module \meta{module} with identifier \meta{id} and places it in the input stream. Notice that both \meta{module} and \meta{id} are converted to strings before composing them in the address, so they shouldn't contain any command inside. Equivalent to
+%  \begin{Coding}
+%   !simfun[tl_to_str][n]{!meta[module]}.!simfun[tl_to_str][n]{!meta[id]}
+%  \end{Coding}
 %
 % \fromV{1.0}
 % \end{function}
 %
 % \begin{function}{\object_address_set:Nnn, \object_address_gset:Nnn}
 %  \begin{syntax}
-%   \cs{object_address_set:nn} \meta{str var} \Arg{module} \Arg{id}
+%   \cs{object_address_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
 %  \end{syntax}
 %  Stores the adress of selected object inside the string variable \meta{str var}.
 %
@@ -277,7 +191,10 @@
 %  \begin{syntax}
 %   \cs{object_embedded_adr:nn} \Arg{address} \Arg{id}
 %  \end{syntax}
-%  Compose the address of embedded object with name \meta{id} inside the parent object with address \meta{address}. Since an embedded object is also an object you can use this function for any function that accepts object addresses as an argument.
+%  Compose the address of embedded object with name \meta{id} inside the parent object with address \meta{address}. Since an embedded object is also an object you can use this function for any function that accepts object addresses as an argument. Equivalent to
+%  \begin{Coding}
+%   !meta[address].!simfun[tl_to_str][n]{!meta[id]}
+%  \end{Coding}
 %
 %  \fromV{2.2}
 % \end{function}
@@ -1046,7 +963,7 @@
 %Get address of an object
 %    \begin{macrocode}
 \cs_new:Nn \object_address:nn {
-  \tl_to_str:n { #1  _  #2 }
+  \tl_to_str:n { #1  .  #2 }
 }
 %    \end{macrocode}
 %\end{macro}
@@ -1057,7 +974,7 @@
 
 \cs_new:Nn \object_embedded_adr:nn
   {
-    #1 \tl_to_str:n{ _SUB_ #2 }
+    #1 \tl_to_str:n{ . #2 }
   }
   
 \cs_generate_variant:Nn \object_embedded_adr:nn{ Vn }
@@ -1070,11 +987,11 @@
 %    \begin{macrocode}
 
 \cs_new_protected:Nn \object_address_set:Nnn {
-  \str_set:Nn #1 { #2  _  #3 }
+  \str_set:Nn #1 { #2  .  #3 }
 }
 
 \cs_new_protected:Nn \object_address_gset:Nnn {
-  \str_gset:Nn #1 { #2  _  #3 }
+  \str_gset:Nn #1 { #2  .  #3 }
 }
 
 %    \end{macrocode}
