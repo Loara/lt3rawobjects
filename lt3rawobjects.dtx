@@ -126,14 +126,15 @@
 %   \item \LaTeX3 variables, which are also called \emph{member};
 %   \item \LaTeX3 constants, which are also called \emph{constant};
 %   \item \LaTeX3 functions, which are also called \emph{method};
-%   \item generic control sequences, which are also called \emph{macros};
-%   \item other objects, which are also called \emph{embedded object}.
+%   \item generic control sequences, which are also called \emph{macros}.
 % \end{itemize}
+%
+% Fields in an object are put inside different address spaces (contained in the object address) in order to avoid name clashes with hidden fields required by the exchanging protocol. For this reason you should always use function in the form \cs{rwobj_\meta{field kind}_adr} to get the appropriate field address. 
 %
 % Objects could be declared \emph{local} or \emph{global}. The only difference between a local and a global object is the scope of their members (that are \LaTeX3 variables). You should always create global object unless you specifically need local members.
 %
 % \subsection{Constants}
-% Constants in an object could be \emph{near} and \emph{remote}. A near constant is just a constant declared in such object and could be referred only by it, instead a remote constant is declared inside its generator and can be referred by any object created from that proxy, thus it's shared between all the generated objects. Functions in this library that work with near constants usually contain |ncmember| in their names, whereas those involving remore constants contain |rcmember| instead.
+% Constants in an object could be \emph{near} and \emph{remote}. A near constant is just a constant declared in such object and could be referred only by it, instead a remote constant is declared inside its generator and can be referred by any object created from that proxy, thus it's shared between all the generated objects. Functions in this library that work with near constants usually contain |nconstant| in their names, whereas those involving remore constants contain |rconstant| instead.
 %
 % Both near and remote constants are created in the same way via the |_newconst| functions, however remote constant should be created in a proxy whereas near contant are created directly in the target object.
 %
@@ -141,11 +142,11 @@
 % Methods are \LaTeX3 functions that can't be changed once they're created. Like constant, methods could be near or remote. Moreover, functions in this library dealing with near methods contain |nmethod| whereas those dealing with remote methods contain |rmethod| in their names. 
 %
 % \subsection{Members}
-% Members are just mutable \LaTeX3 variables. You can manually create new members in already existing objects or you can put the definition of a new member directly in a proxy with the \cs{proxy_push_member} functions. In this way all the objects created with that proxy will have a member according to such definition. If the object is local/global then all its members are automatically local/global.
+% Members are just mutable \LaTeX3 variables. You can manually create new members in already existing objects or you can put the definition of a new member directly in a proxy with the \cs{rwobj_proxy_push_member} functions. In this way all the objects created with that proxy will have a member according to such definition. If the object is local/global then all its members are automatically local/global.
 %
 % A member can be \emph{tracked} or \emph{not tracked}. A tracked member have additional information, like its type, stored in the object or in its generator. In particular, you don't need to specify the type of a tracked member and some functions in \thpkg\ are able to retrieve the required information. All the members declared in the generator are automatically tracked.
 %
-% \subsection{Embedded object}
+% \section{Embedded object}
 % Objects can be created inside other objects by just using an address space contained in the parent object address, for example an object created at the address |mod.A.B| is automatically contained in the object at address |mod.A|. A contained object is independent from the contained, imparticular they can have different scope.
 %
 % An \emph{embedded object} is not just an object instantiated in a parent object, but it also inherit some properties of the parent object like the scope. 
@@ -166,171 +167,128 @@
 %
 %  \subsection{Base object functions}
 %
-% \begin{function}[rEXP]{\object_address:nn}
+% \begin{function}[pTF]{\rwobj_if_exist:n, \rwobj_if_exist:V}
 %  \begin{syntax}
-%   \cs{object_address:nn} \Arg{module} \Arg{id}
-%  \end{syntax}
-%  Composes the address of object in module \meta{module} with identifier \meta{id} and places it in the input stream. Notice that both \meta{module} and \meta{id} are converted to strings before composing them in the address, so they shouldn't contain any command inside. Equivalent to
-%  \begin{Coding}
-%   !simfun[tl_to_str][n]{!meta[module]}.!simfun[tl_to_str][n]{!meta[id]}
-%  \end{Coding}
-%
-% \fromV{1.0}
-% \end{function}
-%
-% \begin{function}{\object_address_set:Nnn, \object_address_gset:Nnn}
-%  \begin{syntax}
-%   \cs{object_address_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
-%  \end{syntax}
-%  Stores the adress of selected object inside the string variable \meta{str var}.
-%
-% \fromV{1.1}
-% \end{function}
-%
-% \begin{function}[rEXP]{\object_embedded_adr:nn, \object_embedded_adr:Vn}
-%  \begin{syntax}
-%   \cs{object_embedded_adr:nn} \Arg{address} \Arg{id}
-%  \end{syntax}
-%  Compose the address of embedded object with name \meta{id} inside the parent object with address \meta{address}. Since an embedded object is also an object you can use this function for any function that accepts object addresses as an argument. Equivalent to
-%  \begin{Coding}
-%   !meta[address].!simfun[tl_to_str][n]{!meta[id]}
-%  \end{Coding}
-%
-%  \fromV{2.2}
-% \end{function}
-%
-% \begin{function}[pTF]{\object_if_exist:n, \object_if_exist:V}
-%  \begin{syntax}
-%   \cs{object_if_exist_p:n} \marg{address}
-%   \cs{object_if_exist:nTF} \marg{address} \marg{true code} \marg{false code}
+%   \cs{rwobj_if_exist_p:n} \Arg{address}
+%   \cs{rwobj_if_exist:nTF} \Arg{address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if an object was instantiated at the specified address.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_get_module:n, \object_get_module:V, \object_get_proxy_adr:n, \object_get_proxy_adr:V}
+% \begin{function}[EXP]{\rwobj_get_module:n, \rwobj_get_module:V, \rwobj_get_proxy:n, \rwobj_get_proxy:V}
 %  \begin{syntax}
-%   \cs{object_get_module:n} \marg{address}
-%   \cs{object_get_proxy_adr:n} \marg{address}
+%   \cs{rwobj_get_module:n} \Arg{address}
+%   \cs{rwobj_get_proxy:n} \Arg{address}
 %  \end{syntax}
 %  Get the object module and its generator.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_if_local:n, \object_if_global:n, \object_if_local:V, \object_if_global:V}
+% \begin{function}[pTF]{\rwobj_if_local:n, \rwobj_if_global:n, \rwobj_if_local:V, \rwobj_if_global:V}
 %  \begin{syntax}
-%   \cs{object_if_local_p:n} \marg{address}
-%   \cs{object_if_local:nTF} \marg{address} \marg{true code} \marg{false code}
+%   \cs{rwobj_if_local_p:n} \Arg{address}
+%   \cs{rwobj_if_local:nTF} \Arg{address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the object is local or global.
 %
-% \fromV{1.0}
-% \end{function}
-%
-% \begin{function}[pTF]{\object_if_public:n, \object_if_private:n, \object_if_public:V, \object_if_private:V}
-%  \begin{syntax}
-%   \cs{object_if_public_p:n} \marg{address}
-%   \cs{object_if_public:nTF} \marg{address} \marg{true code} \marg{false code}
-%  \end{syntax}
-%  Tests if the object is public or private.
-%
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
 %  \subsection{Members}
 %
-% \begin{function}[rEXP]{\object_member_adr:nnn, \object_member_adr:Vnn, \object_member_adr:nnv, \object_member_adr:nn, \object_member_adr:Vn}
+% \begin{function}[rEXP]{\rwobj_member_adr:nnn, \rwobj_member_adr:Vnn, \rwobj_member_adr:nnv, \rwobj_member_adr:nn, \object_rwobj_adr:Vn}
 %  \begin{syntax}
-%   \cs{object_member_adr:nnn} \marg{address} \marg{member name} \marg{member type}
-%   \cs{object_member_adr:nn} \marg{address} \marg{member name}
+%   \cs{rwobj_member_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_member_adr:nn} \Arg{address} \Arg{member name}
 %  \end{syntax}
 %  Fully expands to the address of specified member variable. If the member is tracked then you can omit the type field.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_member_if_exist:nnn, \object_member_if_exist:Vnn}
+% \begin{function}[pTF]{\rwobj_member_if_exist:nnn, \rwobj_member_if_exist:Vnn}
 %  \begin{syntax}
-%   \cs{object_member_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
-%   \cs{object_member_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_member_if_exist_p:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_member_if_exist:nnnTF} \Arg{address} \Arg{member name} \Arg{member type} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified member exist.
 %
-% \fromV{2.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_member_if_tracked:nn, \object_member_if_tracked:Vn}
+% \begin{function}[pTF]{\rwobj_member_if_tracked:nn, \rwobj_member_if_tracked:Vn}
 %  \begin{syntax}
-%   \cs{object_member_if_tracked_p:nn} \Arg{address} \Arg{member name}
-%   \cs{object_member_if_tracked:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_member_if_tracked_p:nn} \Arg{address} \Arg{member name}
+%   \cs{rwobj_member_if_tracked:nnTF} \Arg{address} \Arg{member name} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified member exist and is tracked.
 %
-% \fromV{2.3}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_member_type:nn, \object_member_type:Vn}
+% \begin{function}[EXP]{\rwobj_member_type:nn, \rwobj_member_type:Vn}
 %  \begin{syntax}
-%   \cs{object_member_type:nn} \marg{address} \marg{member name}
+%   \cs{rwobj_member_type:nn} \Arg{address} \Arg{member name}
 %  \end{syntax}
 %  Fully expands to the type of specified tracked member.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}{\object_new_member:nnn, \object_new_member:Vnn, \object_new_member:nnv}
+% \begin{function}{\rwobj_new_member:nnn, \rwobj_new_member:Vnn, \rwobj_new_member:nnv}
 %  \begin{syntax}
-%   \cs{object_new_member:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{rwobj_new_member:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Creates a new member with specified name and type. The created member is not tracked.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}{\object_new_member_tracked:nnn, \object_new_member_tracked:Vnn}
+% \begin{function}{\rwobj_new_member_tracked:nnn, \rwobj_new_member_tracked:Vnn}
 %  \begin{syntax}
-%   \cs{object_new_member_tracked:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{rwobj_new_member_tracked:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Creates a new tracked member.
 %
-% \fromV{2.3}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_member_use:nnn, \object_member_use:Vnn, \object_member_use:nnv, \object_member_use:nn, \object_member_use:Vn}
+% \begin{function}[EXP]{\rwobj_member_use:nnn, \rwobj_member_use:Vnn, \rwobj_member_use:nnv, \rwobj_member_use:nn, \rwobj_member_use:Vn}
 %  \begin{syntax}
-%   \cs{object_member_use:nnn} \marg{address} \marg{member name} \marg{member type}
-%   \cs{object_member_use:nn} \marg{address} \marg{member name}
+%   \cs{rwobj_member_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_member_use:nn} \Arg{address} \Arg{member name}
 %  \end{syntax}
 %  Uses the specified member variable.
 %
-% \fromV{1.0}
+% \fromV{2.4}
 % \end{function}
 %
-% \begin{function}{\object_member_set:nnnn, \object_member_set:nnvn, \object_member_set:Vnnn, \object_member_set:nnn, \object_member_set:Vnn}
+% \begin{function}{\rwobj_member_set:nnnn, \rwobj_member_set:nnvn, \rwobj_member_set:Vnnn, \rwobj_member_set:nnn, \rwobj_member_set:Vnn}
 %  \begin{syntax}
-%   \cs{object_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \Arg{value}
-%   \cs{object_member_set:nnn} \Arg{address} \Arg{member name} \Arg{value}
+%   \cs{rwobj_member_set:nnnn} \Arg{address} \Arg{member name} \Arg{member type} \Arg{value}
+%   \cs{rwobj_member_set:nnn} \Arg{address} \Arg{member name} \Arg{value}
 %  \end{syntax}
 %  Sets the value of specified member to \marg{value}. It calls implicitly \cs{\meta{member type}_(g)set:cn} then be sure to define it before calling this method.
 %
 % \fromV{2.1}
 % \end{function}
 %
-% \begin{function}{\object_member_set_eq:nnnN, \object_member_set_eq:nnvN, \object_member_set_eq:VnnN, \object_member_set_eq:nnnc, \object_member_set_eq:Vnnc, \object_member_set_eq:nnN, \object_member_set_eq:VnN, \object_member_set_eq:nnc, \object_member_set_eq:Vnc}
+% \begin{function}{\rwobj_member_set_eq:nnnN, \rwobj_member_set_eq:nnvN, \rwobj_member_set_eq:VnnN, \rwobj_member_set_eq:nnnc, \rwobj_member_set_eq:Vnnc, \rwobj_member_set_eq:nnN, \rwobj_member_set_eq:VnN, \rwobj_member_set_eq:nnc, \rwobj_member_set_eq:Vnc}
 %  \begin{syntax}
-%   \cs{object_member_set_eq:nnnN} \marg{address} \marg{member name} \marg{member type} \meta{variable}
-%   \cs{object_member_set_eq:nnN} \marg{address} \marg{member name} \meta{variable}
+%   \cs{rwobj_member_set_eq:nnnN} \marg{address} \marg{member name} \marg{member type} \meta{variable}
+%   \cs{rwobj_member_set_eq:nnN} \marg{address} \marg{member name} \meta{variable}
 %  \end{syntax}
 %  Sets the value of specified member equal to the value of \meta{variable}.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\object_member_generate:NN, \object_member_generate_protected:NN}
+% \begin{function}{\rwobj_member_generate:NN, \rwobj_member_generate_protected:NN}
 %  \begin{syntax}
-%   \cs{object_member_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{\meta{name\textsubscript{2}}:\meta{arg1}\meta{args}}
+%   \cs{rwobj_member_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{\meta{name\textsubscript{2}}:\meta{arg1}\meta{args}}
 %  \end{syntax}
 %  Define the new functions \cs{\meta{name\textsubscript{1}}:nnn\meta{Targs} } and \cs{\meta{name\textsubscript{1}}:nn\meta{Targs} } that pass to \cs{\meta{name\textsubscript{2}}:\meta{arg1}\meta{args} } the specified member address as the first argument. \meta{Targs} is a list of argument specifications obtained by transforming each element of \meta{args} to |n|, |N|, |w|, |T| or |F|.
 %
@@ -346,98 +304,98 @@
 % \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\object_member_generate_inline:Nnn, \object_member_generate_protected_inline:Nnn}
+% \begin{function}{\rwobj_member_generate_inline:Nnn, \rwobj_member_generate_protected_inline:Nnn}
 %  \begin{syntax}
-%   \cs{object_member_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
+%   \cs{rwobj_member_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
 %  \end{syntax}
-%  Works as \cs{object_member_generate:NN}, however in \meta{name\textsubscript{2}} you can use parameters |#1| and |#2| to compose the needed function. Parameter |#1| expands to the (fully expanded) member type and |#2| is equal to |g| if the object is global and it's empty if it is local.
+%  Works as \cs{rwobj_member_generate:NN}, however in \meta{name\textsubscript{2}} you can use parameters |#1| and |#2| to compose the needed function. Parameter |#1| expands to the (fully expanded) member type and |#2| is equal to |g| if the object is global and it's empty if it is local.
 %
 % \fromV{2.3}
 % \end{function}
 %
 % \subsection{Constants}
-% \begin{function}[rEXP]{\object_ncmember_adr:nnn, \object_ncmember_adr:Vnn, \object_ncmember_adr:vnn, \object_rcmember_adr:nnn, \object_rcmember_adr:Vnn}
+% \begin{function}[rEXP]{\rwobj_ncmember_adr:nnn, \rwobj_ncmember_adr:Vnn, \rwobj_ncmember_adr:vnn, \rwobj_rcmember_adr:nnn, \rwobj_rcmember_adr:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmember_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_ncmember_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Fully expands to the address of specified near/remote constant member.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_ncmember_if_exist:nnn, \object_ncmember_if_exist:Vnn, \object_rcmember_if_exist:nnn, \object_rcmember_if_exist:Vnn}
+% \begin{function}[pTF]{\rwobj_ncmember_if_exist:nnn, \rwobj_ncmember_if_exist:Vnn, \rwobj_rcmember_if_exist:nnn, \rwobj_rcmember_if_exist:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmember_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
-%   \cs{object_ncmember_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_ncmember_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{rwobj_ncmember_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified member constant exist.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_ncmember_use:nnn, \object_ncmember_use:Vnn, \object_rcmember_use:nnn, \object_rcmember_use:Vnn}
+% \begin{function}[EXP]{\rwobj_ncmember_use:nnn, \rwobj_ncmember_use:Vnn, \rwobj_rcmember_use:nnn, \rwobj_rcmember_use:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmember_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_ncmember_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Uses the specified near/remote constant member.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\object_ncmember_generate:NN, \object_ncmember_protected_generate:NN, \object_rcmember_generate:NN, \object_rcmember_protected_generate:NN}
+% \begin{function}{\rwobj_ncmember_generate:NN, \rwobj_ncmember_protected_generate:NN, \rwobj_rcmember_generate:NN, \rwobj_rcmember_protected_generate:NN}
 %  \begin{syntax}
-%   \cs{object_ncmember_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
+%   \cs{rwobj_ncmember_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
 %  \end{syntax}
-%  Works as \cs{object_member_generate:NN} but with constants instead of members.
+%  Works as \cs{rwobj_member_generate:NN} but with constants instead of members.
 %
 %  \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\object_ncmember_generate_inline:Nnn, \object_ncmember_protected_generate_inline:Nnn, \object_rcmember_generate_inline:Nnn, \object_rcmember_protected_generate_inline:Nnn}
+% \begin{function}{\rwobj_ncmember_generate_inline:Nnn, \rwobj_ncmember_protected_generate_inline:Nnn, \rwobj_rcmember_generate_inline:Nnn, \rwobj_rcmember_protected_generate_inline:Nnn}
 %  \begin{syntax}
-%   \cs{object_ncmember_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
+%   \cs{rwobj_ncmember_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
 %  \end{syntax}
-%  Works as \cs{object_member_generate_inline:Nnn} but with constants instead of members.
+%  Works as \cs{rwobj_member_generate_inline:Nnn} but with constants instead of members.
 %
 %  \fromV{2.3}
 % \end{function}
 %
 % \subsection{Methods}
-% \begin{function}[rEXP]{\object_ncmethod_adr:nnn, \object_ncmethod_adr:Vnn, \object_ncmethod_adr:vnn, \object_rcmethod_adr:nnn, \object_rcmethod_adr:Vnn}
+% \begin{function}[rEXP]{\rwobj_ncmethod_adr:nnn, \rwobj_ncmethod_adr:Vnn, \rwobj_ncmethod_adr:vnn, \rwobj_rcmethod_adr:nnn, \rwobj_rcmethod_adr:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
+%   \cs{rwobj_ncmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
 %  \end{syntax}
 %  Fully expands to the address of the specified
 %  \begin{itemize}
-%    \item near constant method if \cs{object_ncmethod_adr} is used;
-%    \item remote constant method if \cs{object_rcmethod_adr} is used.
+%    \item near constant method if \cs{rwobj_ncmethod_adr} is used;
+%    \item remote constant method if \cs{rwobj_rcmethod_adr} is used.
 %  \end{itemize}
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_ncmethod_if_exist:nnn, \object_ncmethod_if_exist:Vnn, \object_rcmethod_if_exist:nnn, \object_rcmethod_if_exist:Vnn}
+% \begin{function}[pTF]{\rwobj_ncmethod_if_exist:nnn, \rwobj_ncmethod_if_exist:Vnn, \rwobj_rcmethod_if_exist:nnn, \rwobj_rcmethod_if_exist:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmethod_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
-%   \cs{object_ncmethod_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_ncmethod_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{rwobj_ncmethod_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified method constant exist.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\object_new_cmethod:nnnn, \object_new_cmethod:Vnnn}
+% \begin{function}{\rwobj_new_cmethod:nnnn, \rwobj_new_cmethod:Vnnn}
 %  \begin{syntax}
-%   \cs{object_new_cmethod:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
+%   \cs{rwobj_new_cmethod:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
 %  \end{syntax}
 %  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn}.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\object_ncmethod_call:nnn, \object_ncmethod_call:Vnn, \object_rcmethod_call:nnn, \object_rcmethod_call:Vnn}
+% \begin{function}[EXP]{\rwobj_ncmethod_call:nnn, \rwobj_ncmethod_call:Vnn, \rwobj_rcmethod_call:nnn, \rwobj_rcmethod_call:Vnn}
 %  \begin{syntax}
-%   \cs{object_ncmethod_call:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{rwobj_ncmethod_call:nnn} \marg{address} \marg{method name} \marg{method variant}
 %  \end{syntax}
 %  Calls the specified method. This function is expandable if and only if the specified method was not declared |protected|.
 %
@@ -445,27 +403,27 @@
 % \end{function}
 %
 % \subsection{Creation of constants}
-% \begin{function}{\object_newconst_tl:nnn, \object_newconst_tl:Vnn, \object_newconst_str:nnn, \object_newconst_str:Vnn, \object_newconst_int:nnn, \object_newconst_int:Vnn, \object_newconst_clist:nnn, \object_newconst_clist:Vnn, \object_newconst_dim:nnn, \object_newconst_dim:Vnn, \object_newconst_skip:nnn, \object_newconst_skip:Vnn, \object_newconst_fp:nnn, \object_newconst_fp:Vnn}
+% \begin{function}{\rwobj_newconst_tl:nnn, \rwobj_newconst_tl:Vnn, \rwobj_newconst_str:nnn, \rwobj_newconst_str:Vnn, \rwobj_newconst_int:nnn, \rwobj_newconst_int:Vnn, \rwobj_newconst_clist:nnn, \rwobj_newconst_clist:Vnn, \rwobj_newconst_dim:nnn, \rwobj_newconst_dim:Vnn, \rwobj_newconst_skip:nnn, \rwobj_newconst_skip:Vnn, \rwobj_newconst_fp:nnn, \rwobj_newconst_fp:Vnn}
 %  \begin{syntax}
-%   \cs{object_newconst_\meta{type}:nnn} \Arg{address} \Arg{constant name} \Arg{value}
+%   \cs{rwobj_newconst_\meta{type}:nnn} \Arg{address} \Arg{constant name} \Arg{value}
 %  \end{syntax}
 %  Creates a constant variable with type \meta{type} and sets its value to \meta{value}.
 %
 %  \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\object_newconst_seq_from_clist:nnn, \object_newconst_seq_from_clist:Vnn}
+% \begin{function}{\rwobj_newconst_seq_from_clist:nnn, \rwobj_newconst_seq_from_clist:Vnn}
 %  \begin{syntax}
-%   \cs{object_newconst_seq_from_clist:nnn} \Arg{address} \Arg{constant name} \Arg{comma-list}
+%   \cs{rwobj_newconst_seq_from_clist:nnn} \Arg{address} \Arg{constant name} \Arg{comma-list}
 %  \end{syntax}
 %  Creates a |seq| constant which is set to contain all the items in \meta{comma-list}.
 %
 % \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\object_newconst_prop_from_keyval:nnn, \object_newconst_prop_from_keyval:Vnn}
+% \begin{function}{\rwobj_newconst_prop_from_keyval:nnn, \rwobj_newconst_prop_from_keyval:Vnn}
 %  \begin{syntax}
-%   \cs{object_newconst_prop_from_keyval:nnn} \Arg{address} \Arg{constant name}
+%   \cs{rwobj_newconst_prop_from_keyval:nnn} \Arg{address} \Arg{constant name}
 %   \{
 %   \meta{key} = \meta{value}, ...
 %   \}
@@ -475,9 +433,9 @@
 % \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\object_newconst:nnnn}
+% \begin{function}{\rwobj_newconst:nnnn}
 %  \begin{syntax}
-%   \cs{object_newconst:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
+%   \cs{rwobj_newconst:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
 %  \end{syntax}
 %  Invokes \cs{\meta{type}_const:cn} to create the specified constant.
 %
@@ -485,18 +443,18 @@
 % \end{function}
 %
 % \subsection{Macros}
-% \begin{function}[rEXP]{\object_macro_adr:nn, \object_macro_adr:Vn}
+% \begin{function}[rEXP]{\rwobj_macro_adr:nn, \rwobj_macro_adr:Vn}
 %  \begin{syntax}
-%   \cs{object_macro_adr:nn} \Arg{address} \Arg{macro name}
+%   \cs{rwobj_macro_adr:nn} \Arg{address} \Arg{macro name}
 %  \end{syntax}
 %  Address of specified macro.
 %
 %  \fromV{2.2}
 % \end{function}
 % 
-% \begin{function}[EXP]{\object_macro_use:nn, \object_macro_use:Vn}
+% \begin{function}[EXP]{\rwobj_macro_use:nn, \rwobj_macro_use:Vn}
 %  \begin{syntax}
-%   \cs{object_macro_use:nn} \Arg{address} \Arg{macro name}
+%   \cs{rwobj_macro_use:nn} \Arg{address} \Arg{macro name}
 %  \end{syntax}
 %  Uses the specified macro. This function is expandable if and only if the specified macro is it.
 %
@@ -507,61 +465,61 @@
 %
 % \subsection{Proxies and object creation}
 %
-% \begin{function}[pTF]{\object_if_proxy:n, \object_if_proxy:V}
+% \begin{function}[pTF]{\rwobj_if_proxy:n, \rwobj_if_proxy:V}
 %  \begin{syntax}
-%   \cs{object_if_proxy_p:n} \marg{address}
-%   \cs{object_if_proxy:nTF} \marg{address} \marg{true code} \marg{false code}
+%   \cs{rwobj_if_proxy_p:n} \marg{address}
+%   \cs{rwobj_if_proxy:nTF} \marg{address} \marg{true code} \marg{false code}
 %  \end{syntax}
 %  Test if the specified object is a proxy object.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_test_proxy:nn, \object_test_proxy:Vn}
+% \begin{function}[pTF]{\rwobj_test_proxy:nn, \rwobj_test_proxy:Vn}
 %  \begin{syntax}
-%   \cs{object_test_proxy_p:nn} \Arg{object address} \Arg{proxy address}
-%   \cs{object_test_proxy:nnTF} \Arg{object address} \Arg{proxy address} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_test_proxy_p:nn} \Arg{object address} \Arg{proxy address}
+%   \cs{rwobj_test_proxy:nnTF} \Arg{object address} \Arg{proxy address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Test if the specified object is generated by the selected proxy, where \meta{proxy variable} is a string variable holding the proxy address.
 %
 % \begin{texnote}
-% Remember that this command uses internally an |e| expansion so in older engines (any different from Lua\LaTeX\ before 2019) it'll require slow processing. Don't use it in speed critical parts, instead use \cs{object_test_proxy:nN}.
+% Remember that this command uses internally an |e| expansion so in older engines (any different from Lua\LaTeX\ before 2019) it'll require slow processing. Don't use it in speed critical parts, instead use \cs{rwobj_test_proxy:nN}.
 % \end{texnote}
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\object_test_proxy:nN, \object_test_proxy:VN}
+% \begin{function}[pTF]{\rwobj_test_proxy:nN, \rwobj_test_proxy:VN}
 %  \begin{syntax}
-%   \cs{object_test_proxy_p:nN} \Arg{object address} \meta{proxy variable}
-%   \cs{object_test_proxy:nNTF} \Arg{object address} \meta{proxy variable} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_test_proxy_p:nN} \Arg{object address} \meta{proxy variable}
+%   \cs{rwobj_test_proxy:nNTF} \Arg{object address} \meta{proxy variable} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Test if the specified object is generated by the selected proxy, where \meta{proxy variable} is a string variable holding the proxy address. The |:nN| variant don't use |e| expansion, instead of |:nn| command, so it can be safetly used with older compilers. 
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{variable}{\c_proxy_address_str}
+% \begin{variable}{\c_rwobj_proxy_address_str}
 %  The address of the |proxy| object in the |rawobjects| module.
 %
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{function}{\object_create:nnnNN, \object_create:VnnNN}
+% \begin{function}{\rwobj_create:nnnNN, \rwobj_create:VnnNN}
 %  \begin{syntax}
-%   \cs{object_create:nnnNN} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
+%   \cs{rwobj_create:nnnNN} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
 %  \end{syntax}
 %  Creates an object by using the proxy at \meta{proxy address} and the specified parameters. Use this function only if you need to create private objects (at present private objects are functionally equivalent to public objects) or if you need to compile your project with an old version of this library (|< 2.3|).
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\object_create:nnnN, \object_create:VnnN, \object_create:nnn, \object_create:Vnn}
+% \begin{function}{\rwobj_create:nnnN, \rwobj_create:VnnN, \rwobj_create:nnn, \rwobj_create:Vnn}
 %  \begin{syntax}
-%   \cs{object_create:nnnN} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope}\\
-%   \cs{object_create:nnn} \Arg{proxy address} \Arg{module} \Arg{id}
+%   \cs{rwobj_create:nnnN} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope}\\
+%   \cs{rwobj_create:nnn} \Arg{proxy address} \Arg{module} \Arg{id}
 %  \end{syntax}
-%  Same as \cs{object_create:nnnNN} but both create only public objects, and the |:nnn| version only global ones. Always use these two function instead of \cs{object_create:nnnNN} unless you strictly need private objects.
+%  Same as \cs{rwobj_create:nnnNN} but both create only public objects, and the |:nnn| version only global ones. Always use these two function instead of \cs{rwobj_create:nnnNN} unless you strictly need private objects.
 %
 % \fromV{2.3}
 % \end{function}
@@ -575,77 +533,77 @@
 % \fromV{2.2}
 % \end{function}
 %
-% \begin{variable}{\c_object_local_str, \c_object_global_str}
+% \begin{variable}{\c_rwobj_local_str, \c_rwobj_global_str}
 %  Possible values for \meta{scope} parameter.
 %
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{variable}{\c_object_public_str, \c_object_private_str}
+% \begin{variable}{\c_rwobj_public_str, \c_rwobj_private_str}
 %  Possible values for \meta{visibility} parameter.
 %
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{function}{\object_create_set:NnnnNN, \object_create_set:NVnnNN, \object_create_set:NnnfNN, \object_create_gset:NnnnNN, \object_create_gset:NVnnNN, \object_create_gset:NnnfNN}
+% \begin{function}{\rwobj_create_set:NnnnNN, \rwobj_create_set:NVnnNN, \rwobj_create_set:NnnfNN, \rwobj_create_gset:NnnnNN, \rwobj_create_gset:NVnnNN, \rwobj_create_gset:NnnfNN}
 %  \begin{syntax}
-%   \cs{object_create_set:NnnnNN} \meta{str var} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
+%   \cs{rwobj_create_set:NnnnNN} \meta{str var} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
 %  \end{syntax}
 %  Creates an object and sets its fully expanded address inside \meta{str var}.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\object_allocate_incr:NNnnNN, \object_allocate_incr:NNVnNN, \object_gallocate_incr:NNnnNN, \object_gallocate_incr:NNVnNN, \object_allocate_gincr:NNnnNN, \object_allocate_gincr:NNVnNN, \object_gallocate_gincr:NNnnNN, \object_gallocate_gincr:NNVnNN}
+% \begin{function}{\rwobj_allocate_incr:NNnnNN, \rwobj_allocate_incr:NNVnNN, \rwobj_gallocate_incr:NNnnNN, \rwobj_gallocate_incr:NNVnNN, \rwobj_allocate_gincr:NNnnNN, \rwobj_allocate_gincr:NNVnNN, \rwobj_gallocate_gincr:NNnnNN, \rwobj_gallocate_gincr:NNVnNN}
 %  \begin{syntax}
-%   \cs{object_allocate_incr:NNnnNN} \meta{str var} \meta{int var} \Arg{proxy address} \Arg{module} \meta{scope} \meta{visibility}
+%   \cs{rwobj_allocate_incr:NNnnNN} \meta{str var} \meta{int var} \Arg{proxy address} \Arg{module} \meta{scope} \meta{visibility}
 %  \end{syntax}
 %  Build a new object address with module \meta{module} and an identifier generated from \meta{proxy address} and the integer contained inside \meta{int var}, then increments \meta{int var}. This is very useful when you need to create a lot of objects, each of them on a different address. the |_incr| version increases \meta{int var} locally whereas |_gincr| does it globally.
 %
 % \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\proxy_create:nnN, \proxy_create_set:NnnN, \proxy_create_gset:NnnN}
+% \begin{function}{\rwobj_proxy_create:nnN, \rwobj_proxy_create_set:NnnN, \rwobj_proxy_create_gset:NnnN}
 %  \begin{syntax}
-%   \cs{proxy_create:nnN} \Arg{module} \Arg{id} \meta{visibility}
-%   \cs{proxy_create_set:NnnN} \meta{str var} \Arg{module} \Arg{id} \meta{visibility}
+%   \cs{rwobj_proxy_create:nnN} \Arg{module} \Arg{id} \meta{visibility}
+%   \cs{rwobj_proxy_create_set:NnnN} \meta{str var} \Arg{module} \Arg{id} \meta{visibility}
 %  \end{syntax}
-% These commands are deprecated because proxies should be global and public. Use instead \cs{proxy_create:nn}, \cs{proxy_create_set:Nnn} and \cs{proxy_create_gset:Nnn}.
+% These commands are deprecated because proxies should be global and public. Use instead \cs{rwobj_proxy_create:nn}, \cs{rwobj_proxy_create_set:Nnn} and \cs{rwobj_proxy_create_gset:Nnn}.
 %
 % \fromVD{1.0}{2.3}
 % \end{function}
 %
-% \begin{function}{\proxy_create:nn, \proxy_create_set:Nnn, \proxy_create_gset:Nnn}
+% \begin{function}{\rwobj_proxy_create:nn, \rwobj_proxy_create_set:Nnn, \rwobj_proxy_create_gset:Nnn}
 %  \begin{syntax}
-%   \cs{proxy_create:nn} \Arg{module} \Arg{id}
-%   \cs{proxy_create_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
+%   \cs{rwobj_proxy_create:nn} \Arg{module} \Arg{id}
+%   \cs{rwobj_proxy_create_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
 %  \end{syntax}
 %  Creates a global public proxy object.
 %
 % \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\proxy_push_member:nnn, \proxy_push_member:Vnn}
+% \begin{function}{\rwobj_proxy_push_member:nnn, \rwobj_proxy_push_member:Vnn}
 %  \begin{syntax}
-%   \cs{proxy_push_member:nnn} \Arg{proxy address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_proxy_push_member:nnn} \Arg{proxy address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
-%  Updates a proxy object with a new member specification, so that every subsequential object created with this proxy will have a member variable with the specified name and type that can be retrieved with \cs{object_member_type} functions.
+%  Updates a proxy object with a new member specification, so that every subsequential object created with this proxy will have a member variable with the specified name and type that can be retrieved with \cs{rwobj_member_type} functions.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\proxy_push_embedded:nnn, \proxy_push_embedded:Vnn}
+% \begin{function}{\rwobj_proxy_push_embedded:nnn, \rwobj_proxy_push_embedded:Vnn}
 %  \begin{syntax}
-%   \cs{proxy_push_embedded:nnn} \Arg{proxy address} \Arg{embedded object name} \Arg{embedded object proxy}
+%   \cs{rwobj_proxy_push_embedded:nnn} \Arg{proxy address} \Arg{embedded object name} \Arg{embedded object proxy}
 %  \end{syntax}
 %  Updates a proxy object with a new embedded object specification.
 %
 % \fromV{2.2}
 % \end{function}
 %
-% \begin{function}{\proxy_add_initializer:nN, \proxy_add_initializer:VN}
+% \begin{function}{\rwobj_proxy_add_initializer:nN, \rwobj_proxy_add_initializer:VN}
 %  \begin{syntax}
-%   \cs{proxy_add_initializer:nN} \Arg{proxy address} \meta{initializer}
+%   \cs{rwobj_proxy_add_initializer:nN} \Arg{proxy address} \meta{initializer}
 %  \end{syntax}
 %  Pushes a new initializer that will be executed on each created objects. An initializer is a function that should accept five arguments in this order:
 %  \begin{itemize}
@@ -659,9 +617,9 @@
 %  \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\object_assign:nn, \object_assign:Vn, \object_assign:nV, \object_assign:VV}
+% \begin{function}{\rwobj_assign:nn, \rwobj_assign:Vn, \rwobj_assign:nV, \rwobj_assign:VV}
 %  \begin{syntax}
-%   \cs{object_assign:nn} \marg{to address} \marg{from address}
+%   \cs{rwobj_assign:nn} \marg{to address} \marg{from address}
 %  \end{syntax}
 %  Assigns the content of each variable of object at \meta{from address} to each correspective variable in \meta{to address}. Both the objects should be created with the same proxy object and only variables listed in the proxy are assigned.
 %
@@ -682,11 +640,11 @@
 %
 % \begin{Coding}
 % !simfun[str_new][N] !simvar[g_myobj_str]
-% !simfun[object_create_gset][NVnn] !simvar[g_myobj_str] !simvar[g_myproxy_str]
+% !simfun[rwobj_create_gset][NVnn] !simvar[g_myobj_str] !simvar[g_myproxy_str]
 %   { example }{ myobj }
 % !simfun[tl_gset][cn]
 %   {
-%     !simfun[object_member_adr][Vn] !simvar[g_myobj_str] { myvar }
+%     !simfun[rwobj_member_adr][Vn] !simvar[g_myobj_str] { myvar }
 %   }
 %   { !simvar[c_dollar_str]{} ~ dollar ~ !simvar[c_dollar_str]{} }
 % !simfun[object_member_use][Vn] !simvar[g_myobj_str] { myvar }
