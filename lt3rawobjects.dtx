@@ -114,17 +114,23 @@
 %
 % You can even pass an address space to a different package by just passing its name as a token list/string, but you and the destination package should before agree upon a common protocol in order to make the passed address space understandable. You can clearly make your own protocol for address spaces exchanging, but \thpkg\ already introduces a valid exchanging protocol that you would use in your project.
 %  
-% An address space that follows the exchanging protocol defined in \thpkg\ is called \emph{object}. All the macros/variables/constants/functions/subspaces contained in an object are called \emph{fields}. Objects and fields should be always created with functions defined in this package. Remember that objects are also address spaces, so you can identify them by their address space name. Such string can be seen also as a pure address that points to your object and so it'll be called also \emph{object address}.
+% An address space that follows the exchanging protocol defined in \thpkg\ is called \emph{object}. All the macros/variables/constants/functions/subspaces contained in an object are also called \emph{fields}. Objects and fields should be always created with functions defined in this package. Remember that objects are also address spaces, so you can identify them by their address space name. Such string can be seen also as a pure address that points to your object and so it'll be called also \emph{object address}.
 %
+% \section{Proxy}
+% Instead of generic address spaces, objects should be created before to use them. In order to create a new object you should uuse a particular kind of object that holds all the necessary information to instantiate your object. These objects that are needed to instantiate new objects are called \emph{proxy}, and the proxy used to instantiated an object is its \emph{generator}. Every object knows the address of its generator.
+%
+% For example the proxy |rwobj_empty| can be used to create empty objects, which are objects that contains only the required fields needed by the exchanging protocol. However, you can create your own proxy that initialized your object fields as you wish. To create new proxies you can use the proxy |rwobj_proxy|.
+%
+% Proxy can also be used as interfaces to group objects by common utilities. Indeed you can use the function \cs{rwobj_proxy_test_eq:nn} to test if an object has been created with the selected proxy.
 %
 % \section{Fields}
-%  Remember that objects are just a collection of different fields uniquely identidied by a pure address. Here an field could be one of the following entities:
+% Currently objects can contain as fields the following entities:
 % \begin{itemize}
-%   \item a \LaTeX3 variable, in which case the field is called \emph{member};
-%   \item a \LaTeX3 constant, in which case the field is called just \emph{constant};
-%   \item a \LaTeX3 function, in which case the field is called \emph{method};
-%   \item generic control sequences, in which case the field is called simply \emph{macro};
-%   \item an entire object, in which case the field is called \emph{embedded object}.
+%   \item \LaTeX3 variables, which are also called \emph{member};
+%   \item \LaTeX3 constants, which are also called \emph{constant};
+%   \item \LaTeX3 functions, which are also called \emph{method};
+%   \item generic control sequences, which are also called \emph{macros};
+%   \item other objects, which are also called \emph{embedded object}.
 % \end{itemize}
 %
 % Objects could be declared \emph{local} or \emph{global}. The only difference between a local and a global object is the scope of their members (that are \LaTeX3 variables). You should always create global object unless you specifically need local members.
