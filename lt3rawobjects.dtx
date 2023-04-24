@@ -149,7 +149,7 @@
 % \section{Embedded object}
 % Objects can be created inside other objects by just using an address space contained in the parent object address, for example an object created at the address |mod.A.B| is automatically contained in the object at address |mod.A|. A contained object is independent from the contained, imparticular they can have different scope.
 %
-% An \emph{embedded object} is not just an object instantiated in a parent object, but it also inherit some properties of the parent object like the scope. 
+% An \emph{embedded object} is not just an object instantiated in a parent object, but it also inherit some properties of the parent object like the scope. Embedded objects are created via \cs{rwobj_new_embedded} functions.
 %
 % \section{Library functions}
 % \label{sec:lib}
@@ -167,30 +167,30 @@
 %
 %  \subsection{Base object functions}
 %
-% \begin{function}[pTF]{\rwobj_if_exist:n, \rwobj_if_exist:V}
+% \begin{function}[pTF]{\rwobj_object_if_exist:n, \rwobj_object_if_exist:V}
 %  \begin{syntax}
-%   \cs{rwobj_if_exist_p:n} \Arg{address}
-%   \cs{rwobj_if_exist:nTF} \Arg{address} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_object_if_exist_p:n} \Arg{address}
+%   \cs{rwobj_object_if_exist:nTF} \Arg{address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if an object was instantiated at the specified address.
 %
 % \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[EXP]{\rwobj_get_module:n, \rwobj_get_module:V, \rwobj_get_proxy:n, \rwobj_get_proxy:V}
+% \begin{function}[EXP]{\rwobj_object_get_module:n, \rwobj_object_get_module:V, \rwobj_object_get_proxy:n, \rwobj_object_get_proxy:V}
 %  \begin{syntax}
-%   \cs{rwobj_get_module:n} \Arg{address}
-%   \cs{rwobj_get_proxy:n} \Arg{address}
+%   \cs{rwobj_object_get_module:n} \Arg{address}
+%   \cs{rwobj_object_get_proxy:n} \Arg{address}
 %  \end{syntax}
 %  Get the object module and its generator.
 %
 % \fromV{2.4}
 % \end{function}
 %
-% \begin{function}[pTF]{\rwobj_if_local:n, \rwobj_if_global:n, \rwobj_if_local:V, \rwobj_if_global:V}
+% \begin{function}[pTF]{\rwobj_object_if_local:n, \rwobj_object_if_global:n, \rwobj_object_if_local:V, \rwobj_object_if_global:V}
 %  \begin{syntax}
-%   \cs{rwobj_if_local_p:n} \Arg{address}
-%   \cs{rwobj_if_local:nTF} \Arg{address} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_object_if_local_p:n} \Arg{address}
+%   \cs{rwobj_object_if_local:nTF} \Arg{address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the object is local or global.
 %
@@ -199,7 +199,7 @@
 %
 %  \subsection{Members}
 %
-% \begin{function}[rEXP]{\rwobj_member_adr:nnn, \rwobj_member_adr:Vnn, \rwobj_member_adr:nnv, \rwobj_member_adr:nn, \object_rwobj_adr:Vn}
+% \begin{function}[rEXP]{\rwobj_member_adr:nnn, \rwobj_member_adr:Vnn, \rwobj_member_adr:nnv, \rwobj_member_adr:nn, \rwobj_member_adr:Vn}
 %  \begin{syntax}
 %   \cs{rwobj_member_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %   \cs{rwobj_member_adr:nn} \Arg{address} \Arg{member name}
@@ -278,8 +278,8 @@
 %
 % \begin{function}{\rwobj_member_set_eq:nnnN, \rwobj_member_set_eq:nnvN, \rwobj_member_set_eq:VnnN, \rwobj_member_set_eq:nnnc, \rwobj_member_set_eq:Vnnc, \rwobj_member_set_eq:nnN, \rwobj_member_set_eq:VnN, \rwobj_member_set_eq:nnc, \rwobj_member_set_eq:Vnc}
 %  \begin{syntax}
-%   \cs{rwobj_member_set_eq:nnnN} \marg{address} \marg{member name} \marg{member type} \meta{variable}
-%   \cs{rwobj_member_set_eq:nnN} \marg{address} \marg{member name} \meta{variable}
+%   \cs{rwobj_member_set_eq:nnnN} \Arg{address} \Arg{member name} \Arg{member type} \meta{variable}
+%   \cs{rwobj_member_set_eq:nnN} \Arg{address} \Arg{member name} \meta{variable}
 %  \end{syntax}
 %  Sets the value of specified member equal to the value of \meta{variable}.
 %
@@ -314,46 +314,46 @@
 % \end{function}
 %
 % \subsection{Constants}
-% \begin{function}[rEXP]{\rwobj_ncmember_adr:nnn, \rwobj_ncmember_adr:Vnn, \rwobj_ncmember_adr:vnn, \rwobj_rcmember_adr:nnn, \rwobj_rcmember_adr:Vnn}
+% \begin{function}[rEXP]{\rwobj_nconstant_adr:nnn, \rwobj_nconstant_adr:Vnn, \rwobj_nconstant_adr:vnn, \rwobj_rconstant_adr:nnn, \rwobj_rconstant_adr:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmember_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_nconstant_adr:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Fully expands to the address of specified near/remote constant member.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\rwobj_ncmember_if_exist:nnn, \rwobj_ncmember_if_exist:Vnn, \rwobj_rcmember_if_exist:nnn, \rwobj_rcmember_if_exist:Vnn}
+% \begin{function}[pTF]{\rwobj_nconstant_if_exist:nnn, \rwobj_nconstant_if_exist:Vnn, \rwobj_rconstant_if_exist:nnn, \rwobj_rconstant_if_exist:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmember_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
-%   \cs{rwobj_ncmember_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_nconstant_if_exist_p:nnn} \marg{address} \marg{member name} \marg{member type}
+%   \cs{rwobj_nconstant_if_exist:nnnTF} \marg{address} \marg{member name} \marg{member type} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified member constant exist.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\rwobj_ncmember_use:nnn, \rwobj_ncmember_use:Vnn, \rwobj_rcmember_use:nnn, \rwobj_rcmember_use:Vnn}
+% \begin{function}[EXP]{\rwobj_nconstant_use:nnn, \rwobj_nconstant_use:Vnn, \rwobj_rconstant_use:nnn, \rwobj_rconstant_use:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmember_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
+%   \cs{rwobj_nconstant_use:nnn} \Arg{address} \Arg{member name} \Arg{member type}
 %  \end{syntax}
 %  Uses the specified near/remote constant member.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\rwobj_ncmember_generate:NN, \rwobj_ncmember_protected_generate:NN, \rwobj_rcmember_generate:NN, \rwobj_rcmember_protected_generate:NN}
+% \begin{function}{\rwobj_nconstant_generate:NN, \rwobj_nconstant_protected_generate:NN, \rwobj_rconstant_generate:NN, \rwobj_rconstant_protected_generate:NN}
 %  \begin{syntax}
-%   \cs{rwobj_ncmember_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
+%   \cs{rwobj_nconstant_generate:NN} \cs{\meta{name\textsubscript{1}}} \cs{name\textsubscript{2}}:\meta{arg1}\meta{args}
 %  \end{syntax}
 %  Works as \cs{rwobj_member_generate:NN} but with constants instead of members.
 %
 %  \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\rwobj_ncmember_generate_inline:Nnn, \rwobj_ncmember_protected_generate_inline:Nnn, \rwobj_rcmember_generate_inline:Nnn, \rwobj_rcmember_protected_generate_inline:Nnn}
+% \begin{function}{\rwobj_nconstant_generate_inline:Nnn, \rwobj_nconstant_protected_generate_inline:Nnn, \rwobj_rconstant_generate_inline:Nnn, \rwobj_rconstant_protected_generate_inline:Nnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmember_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
+%   \cs{rwobj_nconstant_generate_inline:Nnn} \cs{\meta{name\textsubscript{1}}} \Arg{name\textsubscript{2}} \{\meta{arg1}\meta{args}\}
 %  \end{syntax}
 %  Works as \cs{rwobj_member_generate_inline:Nnn} but with constants instead of members.
 %
@@ -361,41 +361,41 @@
 % \end{function}
 %
 % \subsection{Methods}
-% \begin{function}[rEXP]{\rwobj_ncmethod_adr:nnn, \rwobj_ncmethod_adr:Vnn, \rwobj_ncmethod_adr:vnn, \rwobj_rcmethod_adr:nnn, \rwobj_rcmethod_adr:Vnn}
+% \begin{function}[rEXP]{\rwobj_nmethod_adr:nnn, \rwobj_nmethod_adr:Vnn, \rwobj_nmethod_adr:vnn, \rwobj_rmethod_adr:nnn, \rwobj_rmethod_adr:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
+%   \cs{rwobj_nmethod_adr:nnn} \Arg{address} \Arg{method name} \Arg{method variant}
 %  \end{syntax}
 %  Fully expands to the address of the specified
 %  \begin{itemize}
-%    \item near constant method if \cs{rwobj_ncmethod_adr} is used;
-%    \item remote constant method if \cs{rwobj_rcmethod_adr} is used.
+%    \item near constant method if \cs{rwobj_nmethod_adr} is used;
+%    \item remote constant method if \cs{rwobj_rmethod_adr} is used.
 %  \end{itemize}
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\rwobj_ncmethod_if_exist:nnn, \rwobj_ncmethod_if_exist:Vnn, \rwobj_rcmethod_if_exist:nnn, \rwobj_rcmethod_if_exist:Vnn}
+% \begin{function}[pTF]{\rwobj_nmethod_if_exist:nnn, \rwobj_nmethod_if_exist:Vnn, \rwobj_rmethod_if_exist:nnn, \rwobj_rmethod_if_exist:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmethod_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
-%   \cs{rwobj_ncmethod_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_nmethod_if_exist_p:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{rwobj_nmethod_if_exist:nnnTF} \marg{address} \marg{method name} \marg{method variant} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Tests if the specified method constant exist.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}{\rwobj_new_cmethod:nnnn, \rwobj_new_cmethod:Vnnn}
+% \begin{function}{\rwobj_new_method:nnnn, \rwobj_new_method:Vnnn}
 %  \begin{syntax}
-%   \cs{rwobj_new_cmethod:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
+%   \cs{rwobj_new_method:nnnn} \Arg{address} \Arg{method name} \Arg{method arguments} \Arg{code}
 %  \end{syntax}
 %  Creates a new method with specified name and argument types. The \marg{method arguments} should be a string composed only by |n| and |N| characters that are passed to \cs{cs_new:Nn}.
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[EXP]{\rwobj_ncmethod_call:nnn, \rwobj_ncmethod_call:Vnn, \rwobj_rcmethod_call:nnn, \rwobj_rcmethod_call:Vnn}
+% \begin{function}[EXP]{\rwobj_nmethod_call:nnn, \rwobj_nmethod_call:Vnn, \rwobj_rmethod_call:nnn, \rwobj_rmethod_call:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_ncmethod_call:nnn} \marg{address} \marg{method name} \marg{method variant}
+%   \cs{rwobj_nmethod_call:nnn} \marg{address} \marg{method name} \marg{method variant}
 %  \end{syntax}
 %  Calls the specified method. This function is expandable if and only if the specified method was not declared |protected|.
 %
@@ -403,27 +403,27 @@
 % \end{function}
 %
 % \subsection{Creation of constants}
-% \begin{function}{\rwobj_newconst_tl:nnn, \rwobj_newconst_tl:Vnn, \rwobj_newconst_str:nnn, \rwobj_newconst_str:Vnn, \rwobj_newconst_int:nnn, \rwobj_newconst_int:Vnn, \rwobj_newconst_clist:nnn, \rwobj_newconst_clist:Vnn, \rwobj_newconst_dim:nnn, \rwobj_newconst_dim:Vnn, \rwobj_newconst_skip:nnn, \rwobj_newconst_skip:Vnn, \rwobj_newconst_fp:nnn, \rwobj_newconst_fp:Vnn}
+% \begin{function}{\rwobj_new_constant_tl:nnn, \rwobj_new_constant_tl:Vnn, \rwobj_new_constant_str:nnn, \rwobj_new_constant_str:Vnn, \rwobj_new_constant_int:nnn, \rwobj_new_constant_int:Vnn, \rwobj_new_constant_clist:nnn, \rwobj_new_constant_clist:Vnn, \rwobj_new_constant_dim:nnn, \rwobj_new_constant_dim:Vnn, \rwobj_new_constant_skip:nnn, \rwobj_new_constant_skip:Vnn, \rwobj_new_constant_fp:nnn, \rwobj_new_constant_fp:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_newconst_\meta{type}:nnn} \Arg{address} \Arg{constant name} \Arg{value}
+%   \cs{rwobj_new_constant_\meta{type}:nnn} \Arg{address} \Arg{constant name} \Arg{value}
 %  \end{syntax}
 %  Creates a constant variable with type \meta{type} and sets its value to \meta{value}.
 %
 %  \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\rwobj_newconst_seq_from_clist:nnn, \rwobj_newconst_seq_from_clist:Vnn}
+% \begin{function}{\rwobj_new_constant_seq_from_clist:nnn, \rwobj_new_constant_seq_from_clist:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_newconst_seq_from_clist:nnn} \Arg{address} \Arg{constant name} \Arg{comma-list}
+%   \cs{rwobj_new_constant_seq_from_clist:nnn} \Arg{address} \Arg{constant name} \Arg{comma-list}
 %  \end{syntax}
 %  Creates a |seq| constant which is set to contain all the items in \meta{comma-list}.
 %
 % \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\rwobj_newconst_prop_from_keyval:nnn, \rwobj_newconst_prop_from_keyval:Vnn}
+% \begin{function}{\rwobj_new_constant_prop_from_keyval:nnn, \rwobj_new_constant_prop_from_keyval:Vnn}
 %  \begin{syntax}
-%   \cs{rwobj_newconst_prop_from_keyval:nnn} \Arg{address} \Arg{constant name}
+%   \cs{rwobj_new_constant_prop_from_keyval:nnn} \Arg{address} \Arg{constant name}
 %   \{
 %   \meta{key} = \meta{value}, ...
 %   \}
@@ -433,9 +433,9 @@
 % \fromV{1.1}
 % \end{function}
 %
-% \begin{function}{\rwobj_newconst:nnnn}
+% \begin{function}{\rwobj_new_constant:nnnn}
 %  \begin{syntax}
-%   \cs{rwobj_newconst:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
+%   \cs{rwobj_new_constant:nnnn} \Arg{address} \Arg{constant name} \Arg{type} \Arg{value}
 %  \end{syntax}
 %  Invokes \cs{\meta{type}_const:cn} to create the specified constant.
 %
@@ -465,22 +465,22 @@
 %
 % \subsection{Proxies and object creation}
 %
-% \begin{function}[pTF]{\rwobj_if_proxy:n, \rwobj_if_proxy:V}
+% \begin{function}[pTF]{\rwobj_object_if_proxy:n, \rwobj_object_if_proxy:V}
 %  \begin{syntax}
-%   \cs{rwobj_if_proxy_p:n} \marg{address}
-%   \cs{rwobj_if_proxy:nTF} \marg{address} \marg{true code} \marg{false code}
+%   \cs{rwobj_object_if_proxy_p:n} \Arg{address}
+%   \cs{rwobj_object_if_proxy:nTF} \Arg{address} \marg{true code} \marg{false code}
 %  \end{syntax}
 %  Test if the specified object is a proxy object.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\rwobj_test_proxy:nn, \rwobj_test_proxy:Vn}
+% \begin{function}[pTF]{\rwobj_object_test_generator:nn, \rwobj_object_test generator:Vn}
 %  \begin{syntax}
-%   \cs{rwobj_test_proxy_p:nn} \Arg{object address} \Arg{proxy address}
-%   \cs{rwobj_test_proxy:nnTF} \Arg{object address} \Arg{proxy address} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_object_test_generator_p:nn} \Arg{object address} \Arg{proxy address}
+%   \cs{rwobj_object_test_generator:nnTF} \Arg{object address} \Arg{proxy address} \Arg{true code} \Arg{false code}
 %  \end{syntax}
-%  Test if the specified object is generated by the selected proxy, where \meta{proxy variable} is a string variable holding the proxy address.
+%  Test if the specified object is generated by the selected proxy.
 %
 % \begin{texnote}
 % Remember that this command uses internally an |e| expansion so in older engines (any different from Lua\LaTeX\ before 2019) it'll require slow processing. Don't use it in speed critical parts, instead use \cs{rwobj_test_proxy:nN}.
@@ -489,46 +489,31 @@
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{function}[pTF]{\rwobj_test_proxy:nN, \rwobj_test_proxy:VN}
+% \begin{function}[pTF]{\rwobj_object_test_generator:nN, \rwobj_object_test_generator:VN}
 %  \begin{syntax}
-%   \cs{rwobj_test_proxy_p:nN} \Arg{object address} \meta{proxy variable}
-%   \cs{rwobj_test_proxy:nNTF} \Arg{object address} \meta{proxy variable} \Arg{true code} \Arg{false code}
+%   \cs{rwobj_object_test_generator_p:nN} \Arg{object address} \meta{proxy variable}
+%   \cs{rwobj_object_test_generator:nNTF} \Arg{object address} \meta{proxy variable} \Arg{true code} \Arg{false code}
 %  \end{syntax}
 %  Test if the specified object is generated by the selected proxy, where \meta{proxy variable} is a string variable holding the proxy address. The |:nN| variant don't use |e| expansion, instead of |:nn| command, so it can be safetly used with older compilers. 
 %
 % \fromV{2.0}
 % \end{function}
 %
-% \begin{variable}{\c_rwobj_proxy_address_str}
-%  The address of the |proxy| object in the |rawobjects| module.
-%
-% \fromV{1.0}
-% \end{variable}
-%
-% \begin{function}{\rwobj_create:nnnNN, \rwobj_create:VnnNN}
+% \begin{function}{\rwobj_new_object:nnN, \rwobj_new_object:VnN, \rwobj_new_object:nn, \rwobj_new_object:Vn}
 %  \begin{syntax}
-%   \cs{rwobj_create:nnnNN} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
+%   \cs{rwobj_new_object:nnN} \Arg{proxy address} \Arg{object address} \meta{scope}\\
+%   \cs{rwobj_new_object:nn} \Arg{proxy address} \Arg{object address}
 %  \end{syntax}
-%  Creates an object by using the proxy at \meta{proxy address} and the specified parameters. Use this function only if you need to create private objects (at present private objects are functionally equivalent to public objects) or if you need to compile your project with an old version of this library (|< 2.3|).
-%
-% \fromV{1.0}
-% \end{function}
-%
-% \begin{function}{\rwobj_create:nnnN, \rwobj_create:VnnN, \rwobj_create:nnn, \rwobj_create:Vnn}
-%  \begin{syntax}
-%   \cs{rwobj_create:nnnN} \Arg{proxy address} \Arg{module} \Arg{id} \meta{scope}\\
-%   \cs{rwobj_create:nnn} \Arg{proxy address} \Arg{module} \Arg{id}
-%  \end{syntax}
-%  Same as \cs{rwobj_create:nnnNN} but both create only public objects, and the |:nnn| version only global ones. Always use these two function instead of \cs{rwobj_create:nnnNN} unless you strictly need private objects.
+%  Creates a new local/global object at specified address. If you don't specify the scope the object is automatically global.
 %
 % \fromV{2.3}
 % \end{function}
 %
-% \begin{function}{\embedded_create:nnn, \embedded_create:Vnn, \embedded_create:nvn}
+% \begin{function}{\rwobj_new_embedded:nn, \rwobj_new_embedded:Vn, \rwobj_new_embedded:nv}
 %  \begin{syntax}
-%   \cs{embedded_create:nnn} \Arg{parent object} \Arg{proxy address} \Arg{id}
+%   \cs{rwobj_new_embedded:nn} \Arg{object address} \Arg{proxy address}
 %  \end{syntax}
-%  Creates an embedded object with name \meta{id} inside \meta{parent object}.
+%  Creates an embedded object.
 %
 % \fromV{2.2}
 % \end{function}
@@ -539,44 +524,19 @@
 % \fromV{1.0}
 % \end{variable}
 %
-% \begin{variable}{\c_rwobj_public_str, \c_rwobj_private_str}
-%  Possible values for \meta{visibility} parameter.
-%
-% \fromV{1.0}
-% \end{variable}
-%
-% \begin{function}{\rwobj_create_set:NnnnNN, \rwobj_create_set:NVnnNN, \rwobj_create_set:NnnfNN, \rwobj_create_gset:NnnnNN, \rwobj_create_gset:NVnnNN, \rwobj_create_gset:NnnfNN}
+% \begin{function}{\rwobj_new_object_set:NnnN, \rwobj_new_object_set:NVnN, \rwobj_new_object_gset:NnnN, \rwobj_new_object_gset:NVnN}
 %  \begin{syntax}
-%   \cs{rwobj_create_set:NnnnNN} \meta{str var} \marg{proxy address} \marg{module} \marg{id} \meta{scope} \meta{visibility}
+%   \cs{rwobj_new_object_set:NnnN} \meta{str var} \Arg{proxy address} \Arg{object address} \meta{scope}
 %  \end{syntax}
 %  Creates an object and sets its fully expanded address inside \meta{str var}.
 %
 % \fromV{1.0}
 % \end{function}
 %
-% \begin{function}{\rwobj_allocate_incr:NNnnNN, \rwobj_allocate_incr:NNVnNN, \rwobj_gallocate_incr:NNnnNN, \rwobj_gallocate_incr:NNVnNN, \rwobj_allocate_gincr:NNnnNN, \rwobj_allocate_gincr:NNVnNN, \rwobj_gallocate_gincr:NNnnNN, \rwobj_gallocate_gincr:NNVnNN}
+% \begin{function}{\rwobj_proxy_create:n, \rwobj_proxy_create_set:Nn, \rwobj_proxy_create_gset:Nn}
 %  \begin{syntax}
-%   \cs{rwobj_allocate_incr:NNnnNN} \meta{str var} \meta{int var} \Arg{proxy address} \Arg{module} \meta{scope} \meta{visibility}
-%  \end{syntax}
-%  Build a new object address with module \meta{module} and an identifier generated from \meta{proxy address} and the integer contained inside \meta{int var}, then increments \meta{int var}. This is very useful when you need to create a lot of objects, each of them on a different address. the |_incr| version increases \meta{int var} locally whereas |_gincr| does it globally.
-%
-% \fromV{1.1}
-% \end{function}
-%
-% \begin{function}{\rwobj_proxy_create:nnN, \rwobj_proxy_create_set:NnnN, \rwobj_proxy_create_gset:NnnN}
-%  \begin{syntax}
-%   \cs{rwobj_proxy_create:nnN} \Arg{module} \Arg{id} \meta{visibility}
-%   \cs{rwobj_proxy_create_set:NnnN} \meta{str var} \Arg{module} \Arg{id} \meta{visibility}
-%  \end{syntax}
-% These commands are deprecated because proxies should be global and public. Use instead \cs{rwobj_proxy_create:nn}, \cs{rwobj_proxy_create_set:Nnn} and \cs{rwobj_proxy_create_gset:Nnn}.
-%
-% \fromVD{1.0}{2.3}
-% \end{function}
-%
-% \begin{function}{\rwobj_proxy_create:nn, \rwobj_proxy_create_set:Nnn, \rwobj_proxy_create_gset:Nnn}
-%  \begin{syntax}
-%   \cs{rwobj_proxy_create:nn} \Arg{module} \Arg{id}
-%   \cs{rwobj_proxy_create_set:Nnn} \meta{str var} \Arg{module} \Arg{id}
+%   \cs{rwobj_proxy_create:n} \Arg{proxy address}
+%   \cs{rwobj_proxy_create_set:Nn} \meta{str var} \Arg{proxy address}
 %  \end{syntax}
 %  Creates a global public proxy object.
 %
@@ -615,15 +575,6 @@
 %  Initializer will be executed in the same order they're added.
 %
 %  \fromV{2.3}
-% \end{function}
-%
-% \begin{function}{\rwobj_assign:nn, \rwobj_assign:Vn, \rwobj_assign:nV, \rwobj_assign:VV}
-%  \begin{syntax}
-%   \cs{rwobj_assign:nn} \marg{to address} \marg{from address}
-%  \end{syntax}
-%  Assigns the content of each variable of object at \meta{from address} to each correspective variable in \meta{to address}. Both the objects should be created with the same proxy object and only variables listed in the proxy are assigned.
-%
-% \fromV{1.0}
 % \end{function}
 %
 % \section{Examples}
@@ -873,14 +824,6 @@
 %    \begin{macrocode}
 \str_const:Nn \c_object_local_str {l}
 \str_const:Nn \c_object_global_str {g}
-\str_const:Nn \c_object_public_str {_}
-\str_const:Nn \c_object_private_str {__}
-
-
-\cs_new:Nn \@@_scope:N
-  {
-    \str_use:N #1
-  }
 
 \cs_new:Nn \@@_scope_pfx:N
   {
@@ -899,35 +842,17 @@
 		}
 		{ S }{ str }
 	}
-  }  
-
-\cs_new:Nn \@@_vis_var:N
-  {
-    \str_use:N #1
-  }
-
-\cs_new:Nn \@@_vis_fun:N
-  {
-    \str_if_eq:NNT #1 \c_object_private_str
-      {
-        __
-      }
   }
 
 %    \end{macrocode}
 %\end{variable}
 %
-%\begin{macro}{\object_address:nn}
-%Get address of an object
 %    \begin{macrocode}
 \cs_new:Nn \object_address:nn {
   \tl_to_str:n { #1  .  #2 }
 }
 %    \end{macrocode}
-%\end{macro}
 %
-% \begin{macro}{\object_embedded_adr:nn}
-% Address of embedded object
 %    \begin{macrocode}
 
 \cs_new:Nn \object_embedded_adr:nn
@@ -938,10 +863,7 @@
 \cs_generate_variant:Nn \object_embedded_adr:nn{ Vn }
 
 %    \end{macrocode}
-% \end{macro}
 %
-%\begin{macro}{\object_address_set:Nnn, \object_address_gset:Nnn}
-% Saves the address of an object into a string variable
 %    \begin{macrocode}
 
 \cs_new_protected:Nn \object_address_set:Nnn {
@@ -953,19 +875,18 @@
 }
 
 %    \end{macrocode}
-%\end{macro}
 %
-%\begin{macro}[pTF]{\object_if_exist:n}
+%\begin{macro}[pTF]{\rwobj_object_if_exist:n}
 %Tests if object exists.
 %    \begin{macrocode}
 
-\prg_new_conditional:Nnn \object_if_exist:n { p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_object_if_exist:n { p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_ncmember_adr:nnn
+        \object_nconstant_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            #1 . /_I_/
           }
           { S }{ str }
       }
@@ -977,45 +898,45 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_if_exist:n { V }
+\prg_generate_conditional_variant:Nnn \rwobj_object_if_exist:n { V }
   { p, T, F, TF }
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_get_module:n, \object_get_proxy_adr:n}
+%\begin{macro}{\rwobj_object_get_module:n, \rwobj_object_get_proxy_adr:n}
 %Retrieve the name, module and generating proxy of an object
 %    \begin{macrocode}
-\cs_new:Nn \object_get_module:n {
-  \object_ncmember_use:nnn
+\cs_new:Nn \rwobj_object_get_module:n {
+  \rwobj_nconstant_use:nnn
   {
-    \object_embedded_adr:nn{ #1 }{ /_I_/ }
+    #1 . /_I_/ 
   }
   { M }{ str }
 }
-\cs_new:Nn \object_get_proxy_adr:n {
-  \object_ncmember_use:nnn
+\cs_new:Nn \rwobj_object_get_proxy_adr:n {
+  \rwobj_nconstant_use:nnn
   {
-    \object_embedded_adr:nn{ #1 }{ /_I_/ }
+     #1 . /_I_/ 
   }
   { P }{ str }
 }
 
-\cs_generate_variant:Nn \object_get_module:n { V }
-\cs_generate_variant:Nn \object_get_proxy_adr:n { V }
+\cs_generate_variant:Nn \rwobj_object_get_module:n { V }
+\cs_generate_variant:Nn \rwobj_object_get_proxy_adr:n { V }
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}[pTF]{\object_if_local:n, \object_if_global:n, \object_if_public:n, \object_if_private:n}
+%\begin{macro}[pTF]{\rwobj_object_if_local:n, \rwobj_object_if_global:n}
 %Test the specified parameters.
 %    \begin{macrocode}
-\prg_new_conditional:Nnn \object_if_local:n {p, T, F, TF}
+\prg_new_conditional:Nnn \rwobj_object_if_local:n {p, T, F, TF}
 {
   \str_if_eq:cNTF
     {
-      \object_ncmember_adr:nnn
+      \rwobj_nconstant_adr:nnn
         {
-          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          #1 . /_I_/
         }
         { S }{ str }
     }
@@ -1028,13 +949,13 @@
     }
 }
 
-\prg_new_conditional:Nnn \object_if_global:n {p, T, F, TF}
+\prg_new_conditional:Nnn \rwobj_object_if_global:n {p, T, F, TF}
 {
   \str_if_eq:cNTF
     {
-      \object_ncmember_adr:nnn
+      \rwobj_nconstant_adr:nnn
         {
-          \object_embedded_adr:nn{ #1 }{ /_I_/ }
+          #1 . /_I_/
         }
         { S }{ str }
     }
@@ -1047,115 +968,50 @@
     }
 }
 
-\prg_new_conditional:Nnn \object_if_public:n {p, T, F, TF}
-{
-  \str_if_eq:cNTF
-    {
-      \object_ncmember_adr:nnn
-        {
-          \object_embedded_adr:nn{ #1 }{ /_I_/ }
-        }
-        { V }{ str }
-    }
-    \c_object_public_str
-    {
-      \prg_return_true:
-    }
-    {
-      \prg_return_false:
-    }
-}
-
-\prg_new_conditional:Nnn \object_if_private:n {p, T, F, TF}
-{
-  \str_if_eq:cNTF
-    {
-      \object_ncmember_adr:nnn
-        {
-          \object_embedded_adr:nn{ #1 }{ /_I_/ }
-        }
-        { V }{ str }
-    }
-    \c_object_private_str
-    {
-      \prg_return_true:
-    }
-    {
-      \prg_return_false:
-    }
-}
-
-\prg_generate_conditional_variant:Nnn \object_if_local:n { V }
+\prg_generate_conditional_variant:Nnn \rwobj_object_if_local:n { V }
   { p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_if_global:n { V }
-  { p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_if_public:n { V }
-  { p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_if_private:n { V }
+\prg_generate_conditional_variant:Nnn \rwobj_object_if_global:n { V }
   { p, T, F, TF }
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_macro_adr:nn, \object_macro_use:nn}
+%\begin{macro}{\rwobj_macro_adr:nn, \rwobj_macro_use:nn}
 % Generic macro address
 %    \begin{macrocode}
 
-\cs_new:Nn \object_macro_adr:nn
+\cs_new:Nn \rwobj_macro_adr:nn
   {
-    #1 \tl_to_str:n{ _MACRO_ #2 }
+    #1 . MACRO_ \tl_to_str:n{ #2 }
   }
   
-\cs_generate_variant:Nn \object_macro_adr:nn{ Vn }
+\cs_generate_variant:Nn \rwobj_macro_adr:nn{ Vn }
 
-\cs_new:Nn \object_macro_use:nn
+\cs_new:Nn \rwobj_macro_use:nn
   {
     \use:c
       {
-        \object_macro_adr:nn{ #1 }{ #2 }
+        \rwobj_macro_adr:nn{ #1 }{ #2 }
       }
   }
   
-\cs_generate_variant:Nn \object_macro_use:nn{ Vn }
+\cs_generate_variant:Nn \rwobj_macro_use:nn{ Vn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\@@_member_adr:nnnNN}
-% Macro address without object inference
-%    \begin{macrocode}
-
-\cs_new:Nn \@@_member_adr:nnnNN
-  {
-    \@@_scope:N #4
-    \@@_vis_var:N #5
-    #1 \tl_to_str:n { _ MEMBER _ #2 _ #3 }
-  }
-  
-\cs_generate_variant:Nn \@@_member_adr:nnnNN { VnnNN, nnncc }
-
-%    \end{macrocode}
-% \end{macro}
-%
-%\begin{macro}{\object_member_adr:nnn}
+%\begin{macro}{\rwobj_member_adr:nnn}
 %Get the address of a member variable
 %    \begin{macrocode}
 
-\cs_new:Nn \object_member_adr:nnn
+\cs_new:Nn \rwobj_member_adr:nnn
   {
-    \@@_member_adr:nnncc { #1 }{ #2 }{ #3 }
+    \@@_member_adr:nnnc { #1 }{ #2 }{ #3 }
       {
-        \object_ncmember_adr:nnn
+        \object_nconstant_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            #1 . /_I_/
           }
           { S }{ str }
-      }
-      {
-        \object_ncmember_adr:nnn
-          {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
-          }
-          { V }{ str }
       }
   }
 
@@ -1164,11 +1020,11 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}[pTF]{\object_member_if_exist:nnn}
+% \begin{macro}[pTF]{\rwobj_member_if_exist:nnn}
 % Tests if the specified member exists
 %    \begin{macrocode}
 
-\prg_new_conditional:Nnn \object_member_if_exist:nnn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_member_if_exist:nnn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
@@ -1182,21 +1038,21 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_member_if_exist:nnn
+\prg_generate_conditional_variant:Nnn \rwobj_member_if_exist:nnn
   { Vnn }{ p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}[pTF]{\object_member_if_tracked:nn}
+% \begin{macro}[pTF]{\rwobj_member_if_tracked:nn}
 % Tests if the member is tracked.
 %    \begin{macrocode}
 
-\prg_new_conditional:Nnn \object_member_if_tracked:nn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_member_if_tracked:nn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_rcmember_adr:nnn
+        \object_rconstant_adr:nnn
           { #1 }{ #2 _ type }{ str }
       }
       {
@@ -1205,9 +1061,9 @@
       {
         \cs_if_exist:cTF
           {
-            \object_ncmember_adr:nnn
+            \object_nconstant_adr:nnn
               {
-                \object_embedded_adr:nn { #1 }{ /_T_/ }
+                #1./_T_/
               }
               { #2 _ type }{ str }
           }
@@ -1220,45 +1076,45 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_member_if_tracked:nn
+\prg_generate_conditional_variant:Nnn \rwobj_member_if_tracked:nn
   { Vn }{ p, T, F, TF }
 
-\prg_new_eq_conditional:NNn \object_member_if_exist:nn
-  \object_member_if_tracked:nn { p, T, F, TF }
-\prg_new_eq_conditional:NNn \object_member_if_exist:Vn
-  \object_member_if_tracked:Vn { p, T, F, TF }
+\prg_new_eq_conditional:NNn \rwobj_member_if_exist:nn
+  \rwobj_member_if_tracked:nn { p, T, F, TF }
+\prg_new_eq_conditional:NNn \rwobj_member_if_exist:Vn
+  \rwobj_member_if_tracked:Vn { p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_member_type:nn}
+% \begin{macro}{\rwobj_member_type:nn}
 % Deduce the type of tracked members.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_member_type:nn
+\cs_new:Nn \rwobj_member_type:nn
   {
     \cs_if_exist:cTF
       {
-        \object_rcmember_adr:nnn
+        \rwobj_rconstant_adr:nnn
           { #1 }{ #2 _ type }{ str }
       }
       {
-        \object_rcmember_use:nnn
+        \rwobj_rconstant_use:nnn
           { #1 }{ #2 _ type }{ str }
       }
       {
         \cs_if_exist:cT
           {
-            \object_ncmember_adr:nnn
+            \rwobj_nconstant_adr:nnn
               {
-                \object_embedded_adr:nn { #1 }{ /_T_/ }
+                #1./_T_/
               }
               { #2 _ type }{ str }
           }
           {
-            \object_ncmember_use:nnn
+            \rwobj_nconstant_use:nnn
               {
-                \object_embedded_adr:nn { #1 }{ /_T_/ }
+                #1./_T_/ 
               }
               { #2 _ type }{ str }
           }
@@ -1268,19 +1124,19 @@
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_member_adr:nn}
+%\begin{macro}{\rwobj_member_adr:nn}
 %Get the address of a member variable
 %    \begin{macrocode}
 
-\cs_new:Nn \object_member_adr:nn
+\cs_new:Nn \rwobj_member_adr:nn
   {
-    \object_member_adr:nnf { #1 }{ #2 }
+    \rwobj_member_adr:nnf { #1 }{ #2 }
       {
-        \object_member_type:nn { #1 }{ #2 }
+        \rwobj_member_type:nn { #1 }{ #2 }
       }
   }
 
-\cs_generate_variant:Nn \object_member_adr:nn { Vn }
+\cs_generate_variant:Nn \rwobj_member_adr:nn { Vn }
 
 %    \end{macrocode}
 %\end{macro}
@@ -1340,7 +1196,7 @@
 
 %    \end{macrocode}
 %
-% \begin{macro}{\object_member_generate:NN, \object_member_generate_inline:Nnn, \object_member_generate_protected:NN, \object_member_generate_protected_inline:Nnn}
+% \begin{macro}{\rwobj_member_generate:NN, \rwobj_member_generate_inline:Nnn, \rwobj_member_generate_protected:NN, \rwobj_member_generate_protected_inline:Nnn}
 % Generate member versions of specified functions.
 %    \begin{macrocode}
 
@@ -1351,14 +1207,14 @@
       {
         #2
           {
-            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
     \cs_new:cpn { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
       {
         #2
           {
-            \object_member_adr:nn{ ##1 }{ ##2 }
+            \rwobj_member_adr:nn{ ##1 }{ ##2 }
           }
       }
   }
@@ -1370,7 +1226,7 @@
       {
         #2
           {
-            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
     \cs_new_protected:cpn
@@ -1378,7 +1234,7 @@
       {
         #2
           {
-            \object_member_adr:nn{ ##1 }{ ##2 }
+            \rwobj_member_adr:nn{ ##1 }{ ##2 }
           }
       }
   }
@@ -1401,20 +1257,20 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
     \cs_new:cpn { #1 : nn \str_use:N \l_@@_tmp_fa_str } ##1##2
       {
         \use:c { @@_auxfun_#1 :ff }
           {
-            \object_member_type:nn { ##1 }{ ##2 }
+            \rwobj_member_type:nn { ##1 }{ ##2 }
           }
           {
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_member_adr:nn{ ##1 }{ ##2 }
+            \rwobj_member_adr:nn{ ##1 }{ ##2 }
           }
       }
   }
@@ -1437,7 +1293,7 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_member_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
     \cs_new_protected:cpn
@@ -1445,13 +1301,13 @@
       {
         \use:c { @@_auxfun_#1 :ff }
           {
-            \object_member_type:nn { ##1 }{ ##2 }
+            \rwobj_member_type:nn { ##1 }{ ##2 }
           }
           {
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_member_adr:nn{ ##1 }{ ##2 }
+            \rwobj_member_adr:nn{ ##1 }{ ##2 }
           }
       }
   }
@@ -1461,21 +1317,21 @@
 \cs_generate_variant:Nn \@@_mgen_pr:nN { fN }
 \cs_generate_variant:Nn \@@_mgen_pr:nnn { fnn }
 
-\cs_new_protected:Nn \object_member_generate:NN
+\cs_new_protected:Nn \rwobj_member_generate:NN
   {
     \@@_mgen:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_member_generate_inline:Nnn
+\cs_new_protected:Nn \rwobj_member_generate_inline:Nnn
   {
     \@@_mgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
-\cs_new_protected:Nn \object_member_generate_protected:NN
+\cs_new_protected:Nn \rwobj_member_generate_protected:NN
   {
     \@@_mgen_pr:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_member_generate_protected_inline:Nnn
+\cs_new_protected:Nn \rwobj_member_generate_protected_inline:Nnn
   {
     \@@_mgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
@@ -1483,7 +1339,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_ncmember_generate:NN, \object_ncmember_generate_inline:Nnn, \object_ncmember_generate_protected:NN, \object_ncmember_generate_protected_inline:Nnn}
+% \begin{macro}{\rwobj_ncmember_generate:NN, \rwobj_ncmember_generate_inline:Nnn, \rwobj_ncmember_generate_protected:NN, \rwobj_ncmember_generate_protected_inline:Nnn}
 % Generate ncmember versions of specified functions.
 %    \begin{macrocode}
 
@@ -1494,7 +1350,7 @@
       {
         #2
           {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1506,7 +1362,7 @@
       {
         #2
           {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1529,7 +1385,7 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1552,7 +1408,7 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_ncmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1562,21 +1418,21 @@
 \cs_generate_variant:Nn \@@_ncgen_pr:nN { fN }
 \cs_generate_variant:Nn \@@_ncgen_pr:nnn { fnn }
 
-\cs_new_protected:Nn \object_ncmember_generate:NN
+\cs_new_protected:Nn \rwobj_ncmember_generate:NN
   {
     \@@_ncgen:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_ncmember_generate_inline:Nnn
+\cs_new_protected:Nn \rwobj_ncmember_generate_inline:Nnn
   {
     \@@_ncgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
-\cs_new_protected:Nn \object_ncmember_generate_protected:NN
+\cs_new_protected:Nn \rwobj_ncmember_generate_protected:NN
   {
     \@@_ncgen_pr:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_ncmember_generate_protected_inline:Nnn
+\cs_new_protected:Nn \rwobj_ncmember_generate_protected_inline:Nnn
   {
     \@@_ncgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
@@ -1584,7 +1440,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_rcmember_generate:NN, \object_rcmember_generate_inline:Nnn, \object_rcmember_generate_protected:NN, \object_rcmember_generate_protected_inline:Nnn}
+% \begin{macro}{\rwobj_rcmember_generate:NN, \rwobj_rcmember_generate_inline:Nnn, \rwobj_rcmember_generate_protected:NN, \rwobj_rcmember_generate_protected_inline:Nnn}
 % Generate ncmember versions of specified functions.
 %    \begin{macrocode}
 
@@ -1595,7 +1451,7 @@
       {
         #2
           {
-            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1607,7 +1463,7 @@
       {
         #2
           {
-            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1630,7 +1486,7 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1653,7 +1509,7 @@
             \@@_scope_pfx_cl:n{ ##1 }
           }
           {
-            \object_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
+            \rwobj_rcmember_adr:nnn{ ##1 }{ ##2 }{ ##3 }
           }
       }
   }
@@ -1663,21 +1519,21 @@
 \cs_generate_variant:Nn \@@_rcgen_pr:nN { fN }
 \cs_generate_variant:Nn \@@_rcgen_pr:nnn { fnn }
 
-\cs_new_protected:Nn \object_rcmember_generate:NN
+\cs_new_protected:Nn \rwobj_rcmember_generate:NN
   {
     \@@_rcgen:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_rcmember_generate_inline:Nnn
+\cs_new_protected:Nn \rwobj_rcmember_generate_inline:Nnn
   {
     \@@_rcgen:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
-\cs_new_protected:Nn \object_rcmember_generate_protected:NN
+\cs_new_protected:Nn \rwobj_rcmember_generate_protected:NN
   {
     \@@_rcgen_pr:fN { \cs_to_str:N #1 } #2
   }
 
-\cs_new_protected:Nn \object_rcmember_generate_protected_inline:Nnn
+\cs_new_protected:Nn \rwobj_rcmember_generate_protected_inline:Nnn
   {
     \@@_rcgen_pr:fnn { \cs_to_str:N #1 }{ #2 }{ #3 }
   }
@@ -1752,44 +1608,44 @@
 
 %    \end{macrocode}
 %
-%\begin{macro}{\object_new_member:nnn, \object_new_member_tracked:nnn}
+%\begin{macro}{\rwobj_new_member:nnn, \rwobj_new_member_tracked:nnn}
 %Creates a new member variable
 %    \begin{macrocode}
 
 \@@_genmem_pr_int:nnn { object_new_member }{ #1 _ new }{ c }
 
-\cs_new_protected:Nn \object_new_member_tracked:nnn
+\cs_new_protected:Nn \rwobj_new_member_tracked:nnn
   {
-    \object_new_member:nnn { #1 }{ #2 }{ #3 }
+    \rwobj_new_member:nnn { #1 }{ #2 }{ #3 }
 
     \str_const:cn
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn { #1 }{ /_T_/ }
+            \rwobj_embedded_adr:nn { #1 }{ /_T_/ }
           }
           { #2 _ type }{ str }
       }
       { #3 }
   }
 
-\cs_generate_variant:Nn \object_new_member_tracked:nnn { Vnn, nnv }
+\cs_generate_variant:Nn \rwobj_new_member_tracked:nnn { Vnn, nnv }
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_use:nnn, \object_member_use:nn}
+%\begin{macro}{\rwobj_member_use:nnn, \rwobj_member_use:nn}
 %Uses a member variable
 %    \begin{macrocode}
 
 \@@_genmem_int:nnn {object_member_use}{ #1_use }{c}
 
-\cs_generate_variant:Nn \object_member_use:nnn {vnn}
+\cs_generate_variant:Nn \rwobj_member_use:nnn {vnn}
 
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_set:nnnn, \object_member_set:nnn}
+%\begin{macro}{\rwobj_member_set:nnnn, \rwobj_member_set:nnn}
 % Set the value a member.
 %    \begin{macrocode}
 
@@ -1798,63 +1654,63 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}{\object_member_set_eq:nnnN, \object_member_set_eq:nnN}
+%\begin{macro}{\rwobj_member_set_eq:nnnN, \rwobj_member_set_eq:nnN}
 % Make a member equal to another variable.
 %    \begin{macrocode}
 
 \@@_genmem_pr_int:nnn { object_member_set_eq }{ #1 _ #2 set_eq }{ cN }
 
-\cs_generate_variant:Nn \object_member_set_eq:nnnN { nnnc, Vnnc }
+\cs_generate_variant:Nn \rwobj_member_set_eq:nnnN { nnnc, Vnnc }
 
-\cs_generate_variant:Nn \object_member_set_eq:nnN { nnc, Vnc }
+\cs_generate_variant:Nn \rwobj_member_set_eq:nnN { nnc, Vnc }
 
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_ncmember_adr:nnn}
+% \begin{macro}{\rwobj_ncmember_adr:nnn}
 % Get address of near constant
 %    \begin{macrocode}
 
-\cs_new:Nn \object_ncmember_adr:nnn
+\cs_new:Nn \rwobj_ncmember_adr:nnn
   {
     \tl_to_str:n{ c _ } #1 \tl_to_str:n { _ CONST _ #2 _ #3 }
   }
 
-\cs_generate_variant:Nn \object_ncmember_adr:nnn { Vnn, vnn }
+\cs_generate_variant:Nn \rwobj_ncmember_adr:nnn { Vnn, vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_rcmember_adr:nnn}
+%\begin{macro}{\rwobj_rcmember_adr:nnn}
 % Get the address of a remote constant.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_rcmember_adr:nnn
+\cs_new:Nn \rwobj_rcmember_adr:nnn
   {
-    \object_ncmember_adr:vnn
+    \rwobj_ncmember_adr:vnn
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { P }{ str }
       }
       { #2 }{ #3 }
   }
 
-\cs_generate_variant:Nn \object_rcmember_adr:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_rcmember_adr:nnn { Vnn }
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}[pTF]{\object_ncmember_if_exist:nnn, \object_rcmember_if_exist:nnn}
+% \begin{macro}[pTF]{\rwobj_ncmember_if_exist:nnn, \rwobj_rcmember_if_exist:nnn}
 % Tests if the specified member constant exists.
 %    \begin{macrocode}
 
-\prg_new_conditional:Nnn \object_ncmember_if_exist:nnn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_ncmember_if_exist:nnn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_ncmember_adr:nnn { #1 }{ #2 }{ #3 }
+        \rwobj_ncmember_adr:nnn { #1 }{ #2 }{ #3 }
       }
       {
         \prg_return_true:
@@ -1864,11 +1720,11 @@
       }
   }
 
-\prg_new_conditional:Nnn \object_rcmember_if_exist:nnn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_rcmember_if_exist:nnn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_rcmember_adr:nnn { #1 }{ #2 }{ #3 }
+        \rwobj_rcmember_adr:nnn { #1 }{ #2 }{ #3 }
       }
       {
         \prg_return_true:
@@ -1878,15 +1734,15 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_ncmember_if_exist:nnn
+\prg_generate_conditional_variant:Nnn \rwobj_ncmember_if_exist:nnn
   { Vnn }{ p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_rcmember_if_exist:nnn
+\prg_generate_conditional_variant:Nnn \rwobj_rcmember_if_exist:nnn
   { Vnn }{ p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
 %
-%\begin{macro}{\object_ncmember_use:nnn, \object_rcmember_use:nnn}
+%\begin{macro}{\rwobj_ncmember_use:nnn, \rwobj_rcmember_use:nnn}
 % Uses a near/remote constant.
 %    \begin{macrocode}
 
@@ -1897,7 +1753,7 @@
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_newconst:nnnn}
+% \begin{macro}{\rwobj_newconst:nnnn}
 % Creates a constant variable, use with caution
 %    \begin{macrocode}
 
@@ -1906,130 +1762,130 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_newconst_tl:nnn, \object_newconst_str:nnn, \object_newconst_int:nnn, \object_newconst_clist:nnn, \object_newconst_dim:nnn, \object_newconst_skip:nnn, \object_newconst_fp:nnn}
+% \begin{macro}{\rwobj_newconst_tl:nnn, \rwobj_newconst_str:nnn, \rwobj_newconst_int:nnn, \rwobj_newconst_clist:nnn, \rwobj_newconst_dim:nnn, \rwobj_newconst_skip:nnn, \rwobj_newconst_fp:nnn}
 % Create constants
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_newconst_tl:nnn
+\cs_new_protected:Nn \rwobj_newconst_tl:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ tl }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ tl }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_str:nnn
+\cs_new_protected:Nn \rwobj_newconst_str:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ str }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ str }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_int:nnn
+\cs_new_protected:Nn \rwobj_newconst_int:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ int }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ int }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_clist:nnn
+\cs_new_protected:Nn \rwobj_newconst_clist:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ clist }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ clist }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_dim:nnn
+\cs_new_protected:Nn \rwobj_newconst_dim:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ dim }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ dim }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_skip:nnn
+\cs_new_protected:Nn \rwobj_newconst_skip:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ skip }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ skip }{ #3 }
   }
-\cs_new_protected:Nn \object_newconst_fp:nnn
+\cs_new_protected:Nn \rwobj_newconst_fp:nnn
   {
-    \object_newconst:nnnn { #1 }{ #2 }{ fp }{ #3 }
+    \rwobj_newconst:nnnn { #1 }{ #2 }{ fp }{ #3 }
   }
 
-\cs_generate_variant:Nn \object_newconst_tl:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_str:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_int:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_clist:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_dim:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_skip:nnn { Vnn }
-\cs_generate_variant:Nn \object_newconst_fp:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_tl:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_str:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_int:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_clist:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_dim:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_skip:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_fp:nnn { Vnn }
 
 
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnx }
-\cs_generate_variant:Nn \object_newconst_str:nnn { nnV }
+\cs_generate_variant:Nn \rwobj_newconst_str:nnn { nnx }
+\cs_generate_variant:Nn \rwobj_newconst_str:nnn { nnV }
 
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_newconst_seq_from_clist:nnn}
+% \begin{macro}{\rwobj_newconst_seq_from_clist:nnn}
 %  Creates a |seq| constant.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_newconst_seq_from_clist:nnn
+\cs_new_protected:Nn \rwobj_newconst_seq_from_clist:nnn
   {
     \seq_const_from_clist:cn
       {
-        \object_ncmember_adr:nnn { #1 }{ #2 }{ seq }
+        \rwobj_ncmember_adr:nnn { #1 }{ #2 }{ seq }
       }
       { #3 }
   }
 
-\cs_generate_variant:Nn \object_newconst_seq_from_clist:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_seq_from_clist:nnn { Vnn }
 
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_newconst_prop_from_keyval:nnn}
+% \begin{macro}{\rwobj_newconst_prop_from_keyval:nnn}
 %  Creates a |prop| constant.
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_newconst_prop_from_keyval:nnn
+\cs_new_protected:Nn \rwobj_newconst_prop_from_keyval:nnn
   {
     \prop_const_from_keyval:cn
       {
-        \object_ncmember_adr:nnn { #1 }{ #2 }{ prop }
+        \rwobj_ncmember_adr:nnn { #1 }{ #2 }{ prop }
       }
       { #3 }
   }
 
-\cs_generate_variant:Nn \object_newconst_prop_from_keyval:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_newconst_prop_from_keyval:nnn { Vnn }
 
 %    \end{macrocode}
 %\end{macro}
 %
 %
-% \begin{macro}{\object_ncmethod_adr:nnn, \object_rcmethod_adr:nnn}
+% \begin{macro}{\rwobj_ncmethod_adr:nnn, \rwobj_rcmethod_adr:nnn}
 % Fully expands to the method address.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_ncmethod_adr:nnn
+\cs_new:Nn \rwobj_ncmethod_adr:nnn
   {
     #1 \tl_to_str:n { _ CMETHOD _ #2 : #3 }
   }
 
-\cs_generate_variant:Nn \object_ncmethod_adr:nnn { Vnn , vnn }
+\cs_generate_variant:Nn \rwobj_ncmethod_adr:nnn { Vnn , vnn }
 
-\cs_new:Nn \object_rcmethod_adr:nnn
+\cs_new:Nn \rwobj_rcmethod_adr:nnn
   {
-    \object_ncmethod_adr:vnn
+    \rwobj_ncmethod_adr:vnn
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { P }{ str }
       }
       { #2 }{ #3 }
   }
 
-\cs_generate_variant:Nn \object_ncmethod_adr:nnn { Vnn , vnn }
-\cs_generate_variant:Nn \object_rcmethod_adr:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_ncmethod_adr:nnn { Vnn , vnn }
+\cs_generate_variant:Nn \rwobj_rcmethod_adr:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}[pTF]{\object_ncmethod_if_exist:nnn, \object_rcmethod_if_exist:nnn}
+% \begin{macro}[pTF]{\rwobj_ncmethod_if_exist:nnn, \rwobj_rcmethod_if_exist:nnn}
 % Tests if the specified member constant exists.
 %    \begin{macrocode}
 
-\prg_new_conditional:Nnn \object_ncmethod_if_exist:nnn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_ncmethod_if_exist:nnn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
+        \rwobj_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
       }
       {
         \prg_return_true:
@@ -2039,11 +1895,11 @@
       }
   }
 
-\prg_new_conditional:Nnn \object_rcmethod_if_exist:nnn {p, T, F, TF }
+\prg_new_conditional:Nnn \rwobj_rcmethod_if_exist:nnn {p, T, F, TF }
   {
     \cs_if_exist:cTF
       {
-        \object_rcmethodr_adr:nnn { #1 }{ #2 }{ #3 }
+        \rwobj_rcmethodr_adr:nnn { #1 }{ #2 }{ #3 }
       }
       {
         \prg_return_true:
@@ -2053,54 +1909,54 @@
       }
   }
 
-\prg_generate_conditional_variant:Nnn \object_ncmethod_if_exist:nnn
+\prg_generate_conditional_variant:Nnn \rwobj_ncmethod_if_exist:nnn
   { Vnn }{ p, T, F, TF }
-\prg_generate_conditional_variant:Nnn \object_rcmethod_if_exist:nnn
+\prg_generate_conditional_variant:Nnn \rwobj_rcmethod_if_exist:nnn
   { Vnn }{ p, T, F, TF }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_new_cmethod:nnnn}
+% \begin{macro}{\rwobj_new_cmethod:nnnn}
 % Creates a new method
 %    \begin{macrocode}
 
-\cs_new_protected:Nn \object_new_cmethod:nnnn
+\cs_new_protected:Nn \rwobj_new_cmethod:nnnn
   {
     \cs_new:cn
 	  {
-	    \object_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
+	    \rwobj_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
 	  { #4 }
   }
   
-\cs_generate_variant:Nn \object_new_cmethod:nnnn { Vnnn }
+\cs_generate_variant:Nn \rwobj_new_cmethod:nnnn { Vnnn }
 
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{\object_ncmethod_call:nnn, \object_rcmethod_call:nnn}
+% \begin{macro}{\rwobj_ncmethod_call:nnn, \rwobj_rcmethod_call:nnn}
 % Calls the specified method.
 %    \begin{macrocode}
 
-\cs_new:Nn \object_ncmethod_call:nnn
+\cs_new:Nn \rwobj_ncmethod_call:nnn
   {
     \use:c
 	  {
-	    \object_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
+	    \rwobj_ncmethod_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
   }
 
-\cs_new:Nn \object_rcmethod_call:nnn
+\cs_new:Nn \rwobj_rcmethod_call:nnn
   {
     \use:c
 	  {
-	    \object_rcmethod_adr:nnn { #1 }{ #2 }{ #3 }
+	    \rwobj_rcmethod_adr:nnn { #1 }{ #2 }{ #3 }
 	  }
   }
   
-\cs_generate_variant:Nn \object_ncmethod_call:nnn { Vnn }
-\cs_generate_variant:Nn \object_rcmethod_call:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_ncmethod_call:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_rcmethod_call:nnn { Vnn }
 
 %    \end{macrocode}
 % \end{macro}
@@ -2109,9 +1965,9 @@
 
 \cs_new_protected:Nn \@@_initproxy:nnn
   {
-    \object_newconst:nnnn
+    \rwobj_newconst:nnnn
       {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+        \rwobj_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { ifprox }{ bool }{ \c_true_bool }
   }
@@ -2120,7 +1976,7 @@
 %    \end{macrocode}
 %
 %
-%\begin{macro}[pTF]{\object_if_proxy:n}
+%\begin{macro}[pTF]{\rwobj_if_proxy:n}
 %Test if an object is a proxy.
 %    \begin{macrocode}
 
@@ -2131,22 +1987,22 @@
 
 \cs_generate_variant:Nn \@@_bol_com:N { c }
 
-\prg_new_conditional:Nnn \object_if_proxy:n {p, T, F, TF}
+\prg_new_conditional:Nnn \rwobj_if_proxy:n {p, T, F, TF}
   {
     \cs_if_exist:cTF
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { ifprox }{ bool }
       }
       {
         \bool_if:cTF
           {
-            \object_ncmember_adr:nnn
+            \rwobj_ncmember_adr:nnn
               {
-                \object_embedded_adr:nn{ #1 }{ /_I_/ }
+                \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
               }
               { ifprox }{ bool }
           }
@@ -2165,19 +2021,19 @@
 %    \end{macrocode}
 %\end{macro}
 %
-%\begin{macro}[pTF]{\object_test_proxy:nn, \object_test_proxy:nN}
+%\begin{macro}[pTF]{\rwobj_test_proxy:nn, \rwobj_test_proxy:nN}
 %Test if an object is generated from selected proxy.
 %    \begin{macrocode}
 
 \prg_generate_conditional_variant:Nnn \str_if_eq:nn { ve }{ TF }
 
-\prg_new_conditional:Nnn \object_test_proxy:nn {p, T, F, TF}
+\prg_new_conditional:Nnn \rwobj_test_proxy:nn {p, T, F, TF}
   {
     \str_if_eq:veTF
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { P }{ str }
       }
@@ -2190,13 +2046,13 @@
       }
   }
 
-\prg_new_conditional:Nnn \object_test_proxy:nN {p, T, F, TF}
+\prg_new_conditional:Nnn \rwobj_test_proxy:nN {p, T, F, TF}
   {
     \str_if_eq:cNTF
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { P }{ str }
       }
@@ -2209,15 +2065,15 @@
       }
   }
   
-\prg_generate_conditional_variant:Nnn \object_test_proxy:nn
+\prg_generate_conditional_variant:Nnn \rwobj_test_proxy:nn
   { Vn }{p, T, F, TF}
-\prg_generate_conditional_variant:Nnn \object_test_proxy:nN
+\prg_generate_conditional_variant:Nnn \rwobj_test_proxy:nN
   { VN }{p, T, F, TF}
 
 %    \end{macrocode}
 %\end{macro}
 %
-% \begin{macro}{\object_create:nnnNN, \object_create_set:NnnnNN, \object_create_gset:NnnnNN, \object_create:nnnN, \object_create_set:NnnnN, \object_create_gset:NnnnN, \object_create:nnn, \object_create_set:Nnnn, \object_create_gset:Nnnn, \embedded_create:nnn}
+% \begin{macro}{\rwobj_create:nnnNN, \rwobj_create_set:NnnnNN, \rwobj_create_gset:NnnnNN, \rwobj_create:nnnN, \rwobj_create_set:NnnnN, \rwobj_create_gset:NnnnN, \rwobj_create:nnn, \rwobj_create_set:Nnnn, \rwobj_create_gset:Nnnn, \embedded_create:nnn}
 % Creates an object from a proxy.
 %    \begin{macrocode}
 
@@ -2228,7 +2084,7 @@
 
 \cs_new_protected:Nn \@@_force_proxy:n
   {
-    \object_if_proxy:nF { #1 }
+    \rwobj_if_proxy:nF { #1 }
       {
         \msg_error:nnn { rawobjects }{ notproxy }{ #1 }
       }
@@ -2242,54 +2098,54 @@
     \@@_force_proxy:n { #1 }
 	
 	
-    \object_newconst_str:nnn
+    \rwobj_newconst_str:nnn
       {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+        \rwobj_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { M }{ #2 }
-    \object_newconst_str:nnn
+    \rwobj_newconst_str:nnn
       {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+        \rwobj_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { P }{ #1 }
-    \object_newconst_str:nnV
+    \rwobj_newconst_str:nnV
       {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+        \rwobj_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { S } #4
-    \object_newconst_str:nnV
+    \rwobj_newconst_str:nnV
       {
-        \object_embedded_adr:nn{ #3 }{ /_I_/ }
+        \rwobj_embedded_adr:nn{ #3 }{ /_I_/ }
       }
       { V } #5
 
     \seq_map_inline:cn
       {
-        \object_member_adr:nnn { #1 }{ varlist }{ seq }
+        \rwobj_member_adr:nnn { #1 }{ varlist }{ seq }
       }
       {
-        \object_new_member:nnv { #3 }{ ##1 }
+        \rwobj_new_member:nnv { #3 }{ ##1 }
           {
-            \object_ncmember_adr:nnn { #1 }{ ##1 _ type }{ str }
+            \rwobj_ncmember_adr:nnn { #1 }{ ##1 _ type }{ str }
           }
       }
       
     \seq_map_inline:cn
       {
-        \object_member_adr:nnn { #1 }{ objlist }{ seq }
+        \rwobj_member_adr:nnn { #1 }{ objlist }{ seq }
       }
       {
         \embedded_create:nvn
           { #3 }
           {
-            \object_ncmember_adr:nnn { #1 }{ ##1 _ proxy }{ str }
+            \rwobj_ncmember_adr:nnn { #1 }{ ##1 _ proxy }{ str }
           }
           { ##1 }
       }
 
     \tl_map_inline:cn
       {
-        \object_member_adr:nnn { #1 }{ init }{ tl }
+        \rwobj_member_adr:nnn { #1 }{ init }{ tl }
       }
       {
         ##1 { #1 }{ #2 }{ #3 }
@@ -2300,74 +2156,74 @@
   
 \cs_generate_variant:Nn \@@_create_anon:nnnNN { xnxNN, xvxcc }
 
-\cs_new_protected:Nn \object_create:nnnNN
+\cs_new_protected:Nn \rwobj_create:nnnNN
   {
     \@@_create_anon:xnxNN { #1 }{ #2 }
-      { \object_address:nn { #2 }{ #3 } }
+      { \rwobj_address:nn { #2 }{ #3 } }
       #4 #5
   }
 
-\cs_generate_variant:Nn \object_create:nnnNN { VnnNN }
+\cs_generate_variant:Nn \rwobj_create:nnnNN { VnnNN }
 
-\cs_new_protected:Nn \object_create_set:NnnnNN
+\cs_new_protected:Nn \rwobj_create_set:NnnnNN
   {
-    \object_create:nnnNN { #2 }{ #3 }{ #4 } #5 #6
-    \str_set:Nx #1 { \object_address:nn { #3 }{ #4 } }
+    \rwobj_create:nnnNN { #2 }{ #3 }{ #4 } #5 #6
+    \str_set:Nx #1 { \rwobj_address:nn { #3 }{ #4 } }
   }
 
-\cs_new_protected:Nn \object_create_gset:NnnnNN
+\cs_new_protected:Nn \rwobj_create_gset:NnnnNN
   {
-    \object_create:nnnNN { #2 }{ #3 }{ #4 } #5 #6
-    \str_gset:Nx #1 { \object_address:nn { #3 }{ #4 } }
+    \rwobj_create:nnnNN { #2 }{ #3 }{ #4 } #5 #6
+    \str_gset:Nx #1 { \rwobj_address:nn { #3 }{ #4 } }
   }
 
-\cs_generate_variant:Nn \object_create_set:NnnnNN { NVnnNN, NnnfNN }
-\cs_generate_variant:Nn \object_create_gset:NnnnNN { NVnnNN, NnnfNN }
+\cs_generate_variant:Nn \rwobj_create_set:NnnnNN { NVnnNN, NnnfNN }
+\cs_generate_variant:Nn \rwobj_create_gset:NnnnNN { NVnnNN, NnnfNN }
 
 
 
-\cs_new_protected:Nn \object_create:nnnN
+\cs_new_protected:Nn \rwobj_create:nnnN
   {
-    \object_create:nnnNN { #1 }{ #2 }{ #3 } #4 \c_object_public_str
+    \rwobj_create:nnnNN { #1 }{ #2 }{ #3 } #4 \c_object_public_str
   }
 
-\cs_generate_variant:Nn \object_create:nnnN { VnnN }
+\cs_generate_variant:Nn \rwobj_create:nnnN { VnnN }
 
-\cs_new_protected:Nn \object_create_set:NnnnN
+\cs_new_protected:Nn \rwobj_create_set:NnnnN
   {
-    \object_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
+    \rwobj_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
   }
 
-\cs_new_protected:Nn \object_create_gset:NnnnN
+\cs_new_protected:Nn \rwobj_create_gset:NnnnN
   {
-    \object_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
+    \rwobj_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 } #5 \c_object_public_str
   }
 
-\cs_generate_variant:Nn \object_create_set:NnnnN { NVnnN }
-\cs_generate_variant:Nn \object_create_gset:NnnnN { NVnnN }
+\cs_generate_variant:Nn \rwobj_create_set:NnnnN { NVnnN }
+\cs_generate_variant:Nn \rwobj_create_gset:NnnnN { NVnnN }
 
-\cs_new_protected:Nn \object_create:nnn
+\cs_new_protected:Nn \rwobj_create:nnn
   {
-    \object_create:nnnNN { #1 }{ #2 }{ #3 }
+    \rwobj_create:nnnNN { #1 }{ #2 }{ #3 }
       \c_object_global_str \c_object_public_str
   }
 
-\cs_generate_variant:Nn \object_create:nnn { Vnn }
+\cs_generate_variant:Nn \rwobj_create:nnn { Vnn }
 
-\cs_new_protected:Nn \object_create_set:Nnnn
+\cs_new_protected:Nn \rwobj_create_set:Nnnn
   {
-    \object_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 }
+    \rwobj_create_set:NnnnNN #1 { #2 }{ #3 }{ #4 }
       \c_object_global_str \c_object_public_str
   }
 
-\cs_new_protected:Nn \object_create_gset:Nnnn
+\cs_new_protected:Nn \rwobj_create_gset:Nnnn
   {
-    \object_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 }
+    \rwobj_create_gset:NnnnNN #1 { #2 }{ #3 }{ #4 }
       \c_object_global_str \c_object_public_str
   }
 
-\cs_generate_variant:Nn \object_create_set:Nnnn { NVnn }
-\cs_generate_variant:Nn \object_create_gset:Nnnn { NVnn }
+\cs_generate_variant:Nn \rwobj_create_set:Nnnn { NVnn }
+\cs_generate_variant:Nn \rwobj_create_gset:Nnnn { NVnn }
 
 
 
@@ -2376,27 +2232,27 @@
   {
     \@@_create_anon:xvxcc { #2 }
 	  {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { M }{ str }
       }
       {
-        \object_embedded_adr:nn
+        \rwobj_embedded_adr:nn
           { #1 }{ #3 }
       }
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { S }{ str }
       }
       {
-        \object_ncmember_adr:nnn
+        \rwobj_ncmember_adr:nnn
           {
-            \object_embedded_adr:nn{ #1 }{ /_I_/ }
+            \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
           }
           { V }{ str }
       }
@@ -2413,19 +2269,19 @@
 
 \cs_new_protected:Nn \proxy_create:nn
   {
-    \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
+    \rwobj_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
       \c_object_global_str \c_object_public_str
   }
 
 \cs_new_protected:Nn \proxy_create_set:Nnn
   {
-    \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+    \rwobj_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str \c_object_public_str
   }
 
 \cs_new_protected:Nn \proxy_create_gset:Nnn
   {
-    \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+    \rwobj_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str \c_object_public_str
   }
 
@@ -2434,21 +2290,21 @@
 \cs_new_protected:Nn \proxy_create:nnN
   {
     \@@_launch_deprecate:NN \proxy_create:nnN \proxy_create:nn
-    \object_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
+    \rwobj_create:VnnNN \c_proxy_address_str { #1 }{ #2 }
       \c_object_global_str #3
   }
 
 \cs_new_protected:Nn \proxy_create_set:NnnN
   {
     \@@_launch_deprecate:NN \proxy_create_set:NnnN \proxy_create_set:Nnn
-    \object_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+    \rwobj_create_set:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str #4
   }
 
 \cs_new_protected:Nn \proxy_create_gset:NnnN
   {
     \@@_launch_deprecate:NN \proxy_create_gset:NnnN \proxy_create_gset:Nnn
-    \object_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
+    \rwobj_create_gset:NVnnNN #1 \c_proxy_address_str { #2 }{ #3 }
       \c_object_global_str #4
   }
 
@@ -2461,10 +2317,10 @@
 
 \cs_new_protected:Nn \proxy_push_member:nnn
   {
-    \object_newconst_str:nnn { #1 }{ #2 _ type }{ #3 }
+    \rwobj_newconst_str:nnn { #1 }{ #2 _ type }{ #3 }
     \seq_gput_left:cn
       {
-        \object_member_adr:nnn { #1 }{ varlist }{ seq }
+        \rwobj_member_adr:nnn { #1 }{ varlist }{ seq }
       }
       { #2 }
   }
@@ -2480,10 +2336,10 @@
 
 \cs_new_protected:Nn \proxy_push_embedded:nnn
   {
-    \object_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
+    \rwobj_newconst_str:nnx { #1 }{ #2 _ proxy }{ #3 }
     \seq_gput_left:cn
       {
-        \object_member_adr:nnn { #1 }{ objlist }{ seq }
+        \rwobj_member_adr:nnn { #1 }{ objlist }{ seq }
       }
       { #2 }
   }
@@ -2501,7 +2357,7 @@
   {
     \tl_gput_right:cn
       {
-        \object_member_adr:nnn { #1 }{ init }{ tl }
+        \rwobj_member_adr:nnn { #1 }{ init }{ tl }
       }
       { #2 }
   }
@@ -2516,40 +2372,40 @@
 %    \begin{macrocode}
 
 \str_const:Nx \c_proxy_address_str
-  { \object_address:nn { rawobjects }{ proxy } }
+  { \rwobj_address:nn { rawobjects }{ proxy } }
   
-\object_newconst_str:nnn
+\rwobj_newconst_str:nnn
   {
-    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+    \rwobj_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
   }
   { M }{ rawobjects }
 
-\object_newconst_str:nnV
+\rwobj_newconst_str:nnV
   {
-    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+    \rwobj_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
   }
   { P } \c_proxy_address_str
   
-\object_newconst_str:nnV
+\rwobj_newconst_str:nnV
   {
-    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+    \rwobj_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
   }
   { S } \c_object_global_str
 
-\object_newconst_str:nnV
+\rwobj_newconst_str:nnV
   {
-    \object_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
+    \rwobj_embedded_adr:Vn \c_proxy_address_str { /_I_/ }
   }
   { V } \c_object_public_str
 
 
 \@@_initproxy:VnV \c_proxy_address_str { rawobjects } \c_proxy_address_str
 
-\object_new_member:Vnn \c_proxy_address_str { init }{ tl }
+\rwobj_new_member:Vnn \c_proxy_address_str { init }{ tl }
 
-\object_new_member:Vnn \c_proxy_address_str { varlist }{ seq }
+\rwobj_new_member:Vnn \c_proxy_address_str { varlist }{ seq }
 
-\object_new_member:Vnn \c_proxy_address_str { objlist }{ seq }
+\rwobj_new_member:Vnn \c_proxy_address_str { objlist }{ seq }
 
 \proxy_push_member:Vnn \c_proxy_address_str
   { init }{ tl }
@@ -2564,7 +2420,7 @@
 %    \end{macrocode}
 %\end{variable}
 %
-% \begin{macro}{\object_allocate_incr:NNnnNN, \object_gallocate_incr:NNnnNN, \object_allocate_gincr:NNnnNN, \object_gallocate_gincr:NNnnNN}
+% \begin{macro}{\rwobj_allocate_incr:NNnnNN, \rwobj_gallocate_incr:NNnnNN, \rwobj_allocate_gincr:NNnnNN, \rwobj_gallocate_gincr:NNnnNN}
 % Create an address and use it to instantiate an object
 %    \begin{macrocode}
 
@@ -2583,9 +2439,9 @@
 	  }
   }
 
-\cs_new_protected:Nn \object_allocate_incr:NNnnNN
+\cs_new_protected:Nn \rwobj_allocate_incr:NNnnNN
   {
-    \object_create_set:NnnfNN #1 { #3 }{ #4 }
+    \rwobj_create_set:NnnfNN #1 { #3 }{ #4 }
       {
         \@@_combine:Nn #2 { #3 }
       }
@@ -2594,9 +2450,9 @@
       \int_incr:N #2
   }
 
-\cs_new_protected:Nn \object_gallocate_incr:NNnnNN
+\cs_new_protected:Nn \rwobj_gallocate_incr:NNnnNN
   {
-    \object_create_gset:NnnfNN #1 { #3 }{ #4 }
+    \rwobj_create_gset:NnnfNN #1 { #3 }{ #4 }
       {
         \@@_combine:Nn #2 { #3 }
       }
@@ -2605,13 +2461,13 @@
       \int_incr:N #2
   }
 
-\cs_generate_variant:Nn \object_allocate_incr:NNnnNN { NNVnNN }
+\cs_generate_variant:Nn \rwobj_allocate_incr:NNnnNN { NNVnNN }
 
-\cs_generate_variant:Nn \object_gallocate_incr:NNnnNN { NNVnNN }
+\cs_generate_variant:Nn \rwobj_gallocate_incr:NNnnNN { NNVnNN }
 
-\cs_new_protected:Nn \object_allocate_gincr:NNnnNN
+\cs_new_protected:Nn \rwobj_allocate_gincr:NNnnNN
   {
-    \object_create_set:NnnfNN #1 { #3 }{ #4 }
+    \rwobj_create_set:NnnfNN #1 { #3 }{ #4 }
       {
         \@@_combine:Nn #2 { #3 }
       }
@@ -2620,9 +2476,9 @@
       \int_gincr:N #2
   }
 
-\cs_new_protected:Nn \object_gallocate_gincr:NNnnNN
+\cs_new_protected:Nn \rwobj_gallocate_gincr:NNnnNN
   {
-    \object_create_gset:NnnfNN #1 { #3 }{ #4 }
+    \rwobj_create_gset:NnnfNN #1 { #3 }{ #4 }
       {
         \@@_combine:Nn #2 { #3 }
       }
@@ -2631,40 +2487,40 @@
       \int_gincr:N #2
   }
 
-\cs_generate_variant:Nn \object_allocate_gincr:NNnnNN { NNVnNN }
+\cs_generate_variant:Nn \rwobj_allocate_gincr:NNnnNN { NNVnNN }
 
-\cs_generate_variant:Nn \object_gallocate_gincr:NNnnNN { NNVnNN }
+\cs_generate_variant:Nn \rwobj_gallocate_gincr:NNnnNN { NNVnNN }
 
 %    \end{macrocode}
 % \end{macro}
 %
 %
-%\begin{macro}{\object_assign:nn}
+%\begin{macro}{\rwobj_assign:nn}
 %Copy an object to another one.
 %    \begin{macrocode}
-\cs_new_protected:Nn \object_assign:nn
+\cs_new_protected:Nn \rwobj_assign:nn
   {
     \seq_map_inline:cn
       {
-        \object_member_adr:vnn
+        \rwobj_member_adr:vnn
           {
-            \object_ncmember_adr:nnn
+            \rwobj_ncmember_adr:nnn
               {
-                \object_embedded_adr:nn{ #1 }{ /_I_/ }
+                \rwobj_embedded_adr:nn{ #1 }{ /_I_/ }
               }
               { P }{ str }
           }
           { varlist }{ seq }
       }
       {
-        \object_member_set_eq:nnc { #1 }{ ##1 }
+        \rwobj_member_set_eq:nnc { #1 }{ ##1 }
           {
-            \object_member_adr:nn{ #2 }{ ##1 }
+            \rwobj_member_adr:nn{ #2 }{ ##1 }
           }
       }
   }
 
-\cs_generate_variant:Nn \object_assign:nn { nV, Vn, VV }
+\cs_generate_variant:Nn \rwobj_assign:nn { nV, Vn, VV }
 %    \end{macrocode}
 %\end{macro}
 %
