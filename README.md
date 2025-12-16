@@ -1,16 +1,4 @@
-# lt3rawobjects
-Objects and proxies in LaTeX3
-
-## Manual installation
-
-If you need a version of this package that is not present in your TeXLive/MiKTeX distribution you can run one of the following commands in order to generate the `.sty` file
-
-    pdflatex lt3rawobjects.ins
-    xelatex lt3rawobjects.ins
-    lualatex lt3rawobjects.ins
-    uplatex lt3rawobjects.ins
-
-if your distribution is up to date all these options should be equivalent, I personally recommend to use `lualatex` but is only a personal preference. In order to work both the files `lt3rawobjects.ins` and `lt3rawobjects.dtx` should be present in your working directory.
+Archivied, moved to https://codeberg.org/Loara/lt3rawobjects
 
 ## License
 
